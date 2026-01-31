@@ -1,6 +1,7 @@
 import os
 import asyncio
 import requests
+from pathlib import Path
 from datetime import datetime
 from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
@@ -10,10 +11,9 @@ from xai_sdk import Client
 from typing import Optional
 
 app = FastAPI(title="Grok Image & Video Generator Local")
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = Path(__file__).resolve().parent
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 api_key = os.getenv("XAI_API_KEY")
 if not api_key:
