@@ -5,10 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grok Image & Video Generator - Local</title>
-    <!-- Ajout du CDN Tailwind CSS pour appliquer les styles -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Lien vers le CSS personnalisé -->
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -17,7 +15,6 @@
             <i class="fas fa-robot text-blue-500 mr-2"></i> Grok Image & Video Generator (xAI)
         </h1>
         
-        <!-- Tabs with icons -->
         <div class="tabs mb-6">
             <ul class="flex border-b border-gray-300">
                 <li class="mr-1">
@@ -27,42 +24,57 @@
                 </li>
                 <li class="mr-1">
                     <a href="#video-tab" class="bg-gray-200 text-gray-700 inline-block py-3 px-6 rounded-t-lg font-semibold flex items-center transition-all">
-                        <i class="fas fa-video mr-2"></i> Vidéo (Texte)
+                        <i class="fas fa-video mr-2"></i> Vidéo
                     </a>
                 </li>
             </ul>
             
             <!-- Image Tab -->
             <div id="image-tab" class="tab-content p-6 bg-blue-50 rounded-b-lg">
-                <form method="POST" action="/generate_image">
+                <form method="POST" action="/generate_image" enctype="multipart/form-data">
                     <label for="prompt_image" class="block text-lg mb-2 text-blue-700 font-semibold">Prompt pour Image :</label>
                     <textarea 
                         id="prompt_image" 
                         name="prompt" 
                         rows="3" 
                         class="w-full p-4 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                        placeholder="Une île faite d'os flottant dans un ciel violet crépusculaire, dark fantasy détaillée"
+                        placeholder="Décrivez votre image (sujet, scène, ambiance, style...)"
                     >{{ prompt }}</textarea>
+                    <label for="num_images" class="block text-lg mb-2 text-blue-700 font-semibold">Nombre d'images à générer (1-4) :</label>
+                    <select id="num_images" name="num_images" class="w-full p-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
                     <button 
                         type="submit" 
                         class="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 w-full font-semibold btn transition-all flex items-center justify-center"
                     >
-                        <i class="fas fa-magic mr-2"></i> Générer l'Image
+                        <i class="fas fa-magic mr-2"></i> Générer les Images
                     </button>
                 </form>
             </div>
             
             <!-- Video Tab -->
             <div id="video-tab" class="tab-content p-6 bg-green-50 rounded-b-lg hidden">
-                <form method="POST" action="/generate_video">
+                <form method="POST" action="/generate_video" enctype="multipart/form-data">
                     <label for="prompt_video" class="block text-lg mb-2 text-green-700 font-semibold">Prompt pour Vidéo :</label>
                     <textarea 
                         id="prompt_video" 
                         name="prompt" 
                         rows="3" 
                         class="w-full p-4 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                        placeholder="Un chat marchant dans une forêt enchantée, animation fluide"
+                        placeholder="Décrivez votre vidéo (sujet, mouvement, ambiance, style...)"
                     >{{ prompt }}</textarea>
+                    <label for="image_file" class="block text-lg mb-2 text-green-700 font-semibold">Optionnel : Uploader une image pour générer la vidéo depuis celle-ci :</label>
+                    <input 
+                        type="file" 
+                        id="image_file" 
+                        name="image_file" 
+                        accept="image/*" 
+                        class="w-full p-2 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                    >
                     <button 
                         type="submit" 
                         class="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-lg hover:from-green-700 hover:to-green-800 w-full font-semibold btn transition-all flex items-center justify-center"
@@ -73,7 +85,7 @@
             </div>
         </div>
 
-        <!-- Logs with better style -->
+        <!-- Logs -->
         <div class="mt-6 bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-auto max-h-40 shadow-inner">
             <h2 class="text-lg font-semibold mb-2 text-white flex items-center">
                 <i class="fas fa-terminal mr-2"></i> Logs / Statut :
@@ -81,47 +93,46 @@
             <div id="log">{{ log }}</div>
         </div>
 
-        {% if image_url %}
+        {% if image_urls %}
         <div class="mt-8 bg-gradient-to-r from-blue-100 to-purple-100 p-6 rounded-xl shadow-lg">
             <h2 class="text-xl font-semibold mb-4 text-blue-800 flex items-center">
-                <i class="fas fa-image mr-2"></i> Image Générée :
+                <i class="fas fa-image mr-2"></i> Images Générées :
             </h2>
-            <img src="{{ image_url }}" alt="Image générée par Grok" class="w-full rounded-lg shadow-md">
-            <p class="mt-2 text-sm text-gray-600 text-center">
-                <a href="{{ image_url }}" target="_blank" class="text-blue-600 hover:underline font-semibold">
-                    <i class="fas fa-external-link-alt mr-1"></i> Ouvrir en grand
-                </a>
-            </p>
-            <form method="POST" action="/download" class="mt-4 text-center">
-                <input type="hidden" name="media_url" value="{{ image_url }}">
-                <input type="hidden" name="prompt" value="{{ prompt }}">
-                <input type="hidden" name="media_type" value="image">
-                <button 
-                    type="submit" 
-                    class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 font-semibold btn"
-                >
-                    <i class="fas fa-download mr-2"></i> Télécharger l'Image
-                </button>
-            </form>
-            <!-- Animate Button -->
-            <form method="POST" action="/animate_image" class="mt-4">
-                <input type="hidden" name="image_url" value="{{ image_url }}">
-                <label for="animate_prompt" class="block text-sm mb-2 text-purple-700">Prompt optionnel pour animation :</label>
-                <input 
-                    id="animate_prompt" 
-                    name="prompt" 
-                    type="text" 
-                    class="w-full p-2 border-2 border-purple-300 rounded mb-2 focus:ring-2 focus:ring-purple-500"
-                    placeholder="Décrire le mouvement (optionnel)"
-                    value="{{ prompt }}"
-                >
-                <button 
-                    type="submit" 
-                    class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-purple-700 w-full font-semibold btn flex items-center justify-center"
-                >
-                    <i class="fas fa-play-circle mr-2"></i> Animer cette Image en Vidéo
-                </button>
-            </form>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for url in image_urls %}
+                <div class="text-center">
+                    <img src="{{ url }}" alt="Image générée par Grok" class="w-full rounded-lg shadow-md">
+                    <p class="mt-2 text-sm text-gray-600">
+                        <a href="{{ url }}" target="_blank" class="text-blue-600 hover:underline font-semibold">
+                            <i class="fas fa-external-link-alt mr-1"></i> Ouvrir en grand
+                        </a>
+                    </p>
+                    <form method="POST" action="/download" class="mt-2">
+                        <input type="hidden" name="media_url" value="{{ url }}">
+                        <input type="hidden" name="prompt" value="{{ prompt }}">
+                        <input type="hidden" name="media_type" value="image">
+                        <button type="submit" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 font-semibold btn">
+                            <i class="fas fa-download mr-1"></i> Télécharger
+                        </button>
+                    </form>
+                    <form method="POST" action="/animate_image" class="mt-2">
+                        <input type="hidden" name="image_url" value="{{ url }}">
+                        <label for="animate_prompt_{{ loop.index }}" class="block text-sm mb-1 text-purple-700">Prompt optionnel :</label>
+                        <input 
+                            id="animate_prompt_{{ loop.index }}" 
+                            name="prompt" 
+                            type="text" 
+                            class="w-full p-1 border-2 border-purple-300 rounded mb-1 focus:ring-2 focus:ring-purple-500"
+                            placeholder="Décrire le mouvement"
+                            value="{{ prompt }}"
+                        >
+                        <button type="submit" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 font-semibold btn">
+                            <i class="fas fa-play-circle mr-1"></i> Animer
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
 
@@ -152,9 +163,12 @@
             </form>
         </div>
         {% endif %}
+
+        <div class="creator">
+            Créé par François MENGUY
+        </div>
     </div>
 
-    <!-- Lien vers le JS personnalisé -->
     <script src="/static/script.js"></script>
 </body>
 </html>
