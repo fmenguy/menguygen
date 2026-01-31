@@ -32,26 +32,38 @@
             <!-- Image Tab -->
             <div id="image-tab" class="tab-content p-6 bg-blue-50 rounded-b-lg">
                 <form method="POST" action="/generate_image" enctype="multipart/form-data">
-                    <label for="prompt_image" class="block text-lg mb-2 text-blue-700 font-semibold">Prompt pour Image :</label>
+                    <label for="prompt_image" class="block text-lg mb-2 text-blue-700 font-semibold">Image Prompt:</label>
                     <textarea 
                         id="prompt_image" 
                         name="prompt" 
                         rows="3" 
                         class="w-full p-4 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                        placeholder="Décrivez votre image (sujet, scène, ambiance, style...)"
+                        placeholder="Describe your image (subject, scene, mood, style...)"
                     >{{ prompt }}</textarea>
-                    <label for="num_images" class="block text-lg mb-2 text-blue-700 font-semibold">Nombre d'images à générer (1-4) :</label>
-                    <select id="num_images" name="num_images" class="w-full p-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                    </select>
+                    <label class="block text-lg mb-2 text-blue-700 font-semibold">Number of images to generate:</label>
+                    <div class="flex space-x-2 mb-4">
+                        <label class="btn-radio">
+                            <input type="radio" name="num_images" value="1" checked>
+                            1
+                        </label>
+                        <label class="btn-radio">
+                            <input type="radio" name="num_images" value="2">
+                            2
+                        </label>
+                        <label class="btn-radio">
+                            <input type="radio" name="num_images" value="3">
+                            3
+                        </label>
+                        <label class="btn-radio">
+                            <input type="radio" name="num_images" value="4">
+                            4
+                        </label>
+                    </div>
                     <button 
                         type="submit" 
                         class="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 w-full font-semibold btn transition-all flex items-center justify-center"
                     >
-                        <i class="fas fa-magic mr-2"></i> Générer les Images
+                        <i class="fas fa-magic mr-2"></i> Generate Images
                     </button>
                 </form>
             </div>
@@ -59,15 +71,15 @@
             <!-- Video Tab -->
             <div id="video-tab" class="tab-content p-6 bg-green-50 rounded-b-lg hidden">
                 <form method="POST" action="/generate_video" enctype="multipart/form-data">
-                    <label for="prompt_video" class="block text-lg mb-2 text-green-700 font-semibold">Prompt pour Vidéo :</label>
+                    <label for="prompt_video" class="block text-lg mb-2 text-green-700 font-semibold">Video Prompt:</label>
                     <textarea 
                         id="prompt_video" 
                         name="prompt" 
                         rows="3" 
                         class="w-full p-4 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                        placeholder="Décrivez votre vidéo (sujet, mouvement, ambiance, style...)"
+                        placeholder="Describe your video (subject, movement, mood, style...)"
                     >{{ prompt }}</textarea>
-                    <label for="image_file" class="block text-lg mb-2 text-green-700 font-semibold">Optionnel : Uploader une image pour générer la vidéo depuis celle-ci :</label>
+                    <label for="image_file" class="block text-lg mb-2 text-green-700 font-semibold">Optional: Upload an image to generate video from it:</label>
                     <input 
                         type="file" 
                         id="image_file" 
@@ -79,7 +91,7 @@
                         type="submit" 
                         class="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-lg hover:from-green-700 hover:to-green-800 w-full font-semibold btn transition-all flex items-center justify-center"
                     >
-                        <i class="fas fa-film mr-2"></i> Générer la Vidéo
+                        <i class="fas fa-film mr-2"></i> Generate Video
                     </button>
                 </form>
             </div>
@@ -117,17 +129,21 @@
                     </form>
                     <form method="POST" action="/animate_image" class="mt-2">
                         <input type="hidden" name="image_url" value="{{ url }}">
-                        <label for="animate_prompt_{{ loop.index }}" class="block text-sm mb-1 text-purple-700">Prompt optionnel :</label>
+                        <label for="animate_prompt_{{ loop.index }}" class="block text-sm mb-1 text-purple-700">Optional animation prompt:</label>
                         <input 
                             id="animate_prompt_{{ loop.index }}" 
                             name="prompt" 
                             type="text" 
                             class="w-full p-1 border-2 border-purple-300 rounded mb-1 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Décrire le mouvement"
-                            value="{{ prompt }}"
+                            placeholder="Describe the movement"
+                            value="Animate this image with smooth and natural movement"
                         >
+                        <div class="flex items-center mb-2">
+                            <input type="checkbox" id="allow_nsfw_{{ loop.index }}" name="allow_nsfw" class="mr-2">
+                            <label for="allow_nsfw_{{ loop.index }}" class="text-sm text-purple-700">Allow NSFW content (may still be blocked by moderation)</label>
+                        </div>
                         <button type="submit" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 font-semibold btn">
-                            <i class="fas fa-play-circle mr-1"></i> Animer
+                            <i class="fas fa-play-circle mr-1"></i> Animate
                         </button>
                     </form>
                 </div>
