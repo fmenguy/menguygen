@@ -129,21 +129,17 @@
                     </form>
                     <form method="POST" action="/animate_image" class="mt-2">
                         <input type="hidden" name="image_url" value="{{ url }}">
-                        <label for="animate_prompt_{{ loop.index }}" class="block text-sm mb-1 text-purple-700">Optional animation prompt:</label>
+                        <label for="animate_prompt_{{ loop.index }}" class="block text-sm mb-1 text-purple-700">Prompt optionnel pour animation :</label>
                         <input 
                             id="animate_prompt_{{ loop.index }}" 
                             name="prompt" 
                             type="text" 
                             class="w-full p-1 border-2 border-purple-300 rounded mb-1 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Describe the movement"
-                            value="Animate this image with smooth and natural movement"
+                            placeholder="Décrire le mouvement (optionnel)"
+                            value="{{ prompt }}"
                         >
-                        <div class="flex items-center mb-2">
-                            <input type="checkbox" id="allow_nsfw_{{ loop.index }}" name="allow_nsfw" class="mr-2">
-                            <label for="allow_nsfw_{{ loop.index }}" class="text-sm text-purple-700">Allow NSFW content (may still be blocked by moderation)</label>
-                        </div>
                         <button type="submit" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 font-semibold btn">
-                            <i class="fas fa-play-circle mr-1"></i> Animate
+                            <i class="fas fa-play-circle mr-1"></i> Animer
                         </button>
                     </form>
                 </div>
