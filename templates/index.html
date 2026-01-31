@@ -4,193 +4,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grok Image & Video Generator - Local</title>
+    <title>Générateur d'Images & Vidéos - Local</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%233b82f6' d='M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256 256-114.6 256-256S397.4 0 256 0zm-32 128c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c17.7 0 32 14.3 32 32s-14.3 32-32 32h-32v32c0 17.7-14.3 32-32 32s-32-14.3-32-32v-32h-32c-17.7 0-32-14.3-32-32s14.3-32 32-32h32v-32zm96 192c-53 0-96-43-96-96s43-96 96-96 96 43 96 96-43 96-96 96z'/%3E%3C/svg%3E">
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200">
-        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800 flex items-center justify-center">
-            <i class="fas fa-robot text-blue-500 mr-2"></i> Grok Image & Video Generator (xAI)
-        </h1>
-        
-        <div class="tabs mb-6">
-            <ul class="flex border-b border-gray-300">
-                <li class="mr-1">
-                    <a href="#image-tab" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white inline-block py-3 px-6 rounded-t-lg font-semibold flex items-center transition-all">
-                        <i class="fas fa-image mr-2"></i> Image
-                    </a>
-                </li>
-                <li class="mr-1">
-                    <a href="#video-tab" class="bg-gray-200 text-gray-700 inline-block py-3 px-6 rounded-t-lg font-semibold flex items-center transition-all">
-                        <i class="fas fa-video mr-2"></i> Vidéo
-                    </a>
-                </li>
-            </ul>
-            
-            <!-- Image Tab -->
-            <div id="image-tab" class="tab-content p-6 bg-blue-50 rounded-b-lg">
-                <form method="POST" action="/generate_image" enctype="multipart/form-data">
-                    <label for="prompt_image" class="block text-lg mb-2 text-blue-700 font-semibold">Image Prompt:</label>
-                    <textarea 
-                        id="prompt_image" 
-                        name="prompt" 
-                        rows="3" 
-                        class="w-full p-4 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                        placeholder="Describe your image (subject, scene, mood, style...)"
-                    >{{ prompt }}</textarea>
-                    <label class="block text-lg mb-2 text-blue-700 font-semibold">Number of images to generate:</label>
-                    <div class="flex space-x-2 mb-4">
-                        <label class="btn-radio">
-                            <input type="radio" name="num_images" value="1" checked>
-                            1
-                        </label>
-                        <label class="btn-radio">
-                            <input type="radio" name="num_images" value="2">
-                            2
-                        </label>
-                        <label class="btn-radio">
-                            <input type="radio" name="num_images" value="3">
-                            3
-                        </label>
-                        <label class="btn-radio">
-                            <input type="radio" name="num_images" value="4">
-                            4
-                        </label>
-                    </div>
-                    <button 
-                        type="submit" 
-                        class="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 w-full font-semibold btn transition-all flex items-center justify-center"
-                    >
-                        <i class="fas fa-magic mr-2"></i> Generate Images
-                    </button>
-                </form>
+    <div class="bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-full max-w-6xl border border-gray-200 flex flex-col md:flex-row gap-6">
+        <!-- Partie gauche : Logo, onglets, formulaires, logs -->
+        <div class="flex-1">
+            <!-- Logo centré -->
+            <div class="text-center mb-6">
+                <i class="fas fa-robot text-4xl text-blue-500"></i>
             </div>
             
-            <!-- Video Tab -->
-            <div id="video-tab" class="tab-content p-6 bg-green-50 rounded-b-lg hidden">
-                <form method="POST" action="/generate_video" enctype="multipart/form-data">
-                    <label for="prompt_video" class="block text-lg mb-2 text-green-700 font-semibold">Video Prompt:</label>
-                    <textarea 
-                        id="prompt_video" 
-                        name="prompt" 
-                        rows="3" 
-                        class="w-full p-4 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                        placeholder="Describe your video (subject, movement, mood, style...)"
-                    >{{ prompt }}</textarea>
-                    <label for="image_file" class="block text-lg mb-2 text-green-700 font-semibold">Optional: Upload an image to generate video from it:</label>
-                    <input 
-                        type="file" 
-                        id="image_file" 
-                        name="image_file" 
-                        accept="image/*" 
-                        class="w-full p-2 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                    >
-                    <button 
-                        type="submit" 
-                        class="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-lg hover:from-green-700 hover:to-green-800 w-full font-semibold btn transition-all flex items-center justify-center"
-                    >
-                        <i class="fas fa-film mr-2"></i> Generate Video
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Logs -->
-        <div class="mt-6 bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-auto max-h-40 shadow-inner">
-            <h2 class="text-lg font-semibold mb-2 text-white flex items-center">
-                <i class="fas fa-terminal mr-2"></i> Logs / Statut :
-            </h2>
-            <div id="log">{{ log }}</div>
-        </div>
-
-        {% if image_urls %}
-        <div class="mt-8 bg-gradient-to-r from-blue-100 to-purple-100 p-6 rounded-xl shadow-lg">
-            <h2 class="text-xl font-semibold mb-4 text-blue-800 flex items-center">
-                <i class="fas fa-image mr-2"></i> Images Générées :
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {% for url in image_urls %}
-                <div class="text-center">
-                    <img src="{{ url }}" alt="Image générée par Grok" class="w-full rounded-lg shadow-md">
-                    <p class="mt-2 text-sm text-gray-600">
-                        <a href="{{ url }}" target="_blank" class="text-blue-600 hover:underline font-semibold">
-                            <i class="fas fa-external-link-alt mr-1"></i> Ouvrir en grand
+            <div class="tabs mb-6">
+                <ul class="flex border-b border-gray-300">
+                    <li class="mr-1">
+                        <a href="#image-tab" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white inline-block py-3 px-6 rounded-t-lg font-semibold flex items-center transition-all">
+                            <i class="fas fa-image mr-2"></i> Outil Image
                         </a>
-                    </p>
-                    <form method="POST" action="/download" class="mt-2">
-                        <input type="hidden" name="media_url" value="{{ url }}">
-                        <input type="hidden" name="prompt" value="{{ prompt }}">
-                        <input type="hidden" name="media_type" value="image">
-                        <button type="submit" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 font-semibold btn">
-                            <i class="fas fa-download mr-1"></i> Télécharger
-                        </button>
-                    </form>
-                    <form method="POST" action="/refine_image" class="mt-2">
-                        <input type="hidden" name="image_url" value="{{ url }}">
-                        <input 
-                            type="text" 
-                            name="refine_prompt" 
-                            placeholder="Prompt pour raffiner l'image (e.g., ajouter des détails)" 
-                            class="w-full p-1 border-2 border-purple-300 rounded mb-1 focus:ring-2 focus:ring-purple-500" 
-                            required
-                        >
-                        <button type="submit" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 font-semibold btn">
-                            <i class="fas fa-edit mr-1"></i> Modifier une image
-                        </button>
-                    </form>
-                    <form method="POST" action="/animate_image" class="mt-2">
-                        <input type="hidden" name="image_url" value="{{ url }}">
-                        <label for="animate_prompt_{{ loop.index }}" class="block text-sm mb-1 text-purple-700">Prompt optionnel pour animation :</label>
-                        <input 
-                            id="animate_prompt_{{ loop.index }}" 
+                    </li>
+                    <li class="mr-1">
+                        <a href="#video-tab" class="bg-gray-200 text-gray-700 inline-block py-3 px-6 rounded-t-lg font-semibold flex items-center transition-all">
+                            <i class="fas fa-video mr-2"></i> Outil Vidéo
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Onglet Image -->
+                <div id="image-tab" class="tab-content p-6 bg-blue-50 rounded-b-lg">
+                    <form method="POST" action="/generate_image" enctype="multipart/form-data">
+                        <label for="prompt_image" class="block text-lg mb-2 text-blue-700 font-semibold">Prompt pour Image :</label>
+                        <textarea 
+                            id="prompt_image" 
                             name="prompt" 
-                            type="text" 
-                            class="w-full p-1 border-2 border-purple-300 rounded mb-1 focus:ring-2 focus:ring-purple-500"
-                            placeholder="Décrire le mouvement (optionnel)"
-                            value="{{ prompt }}"
+                            rows="3" 
+                            class="w-full p-4 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            placeholder="Décrivez votre image (sujet, scène, ambiance, style...)"
+                        >{{ prompt }}</textarea>
+                        <label class="block text-lg mb-2 text-blue-700 font-semibold">Nombre d'images à générer :</label>
+                        <div class="flex space-x-2 mb-4">
+                            <label class="btn-radio">
+                                <input type="radio" name="num_images" value="1" checked>
+                                1
+                            </label>
+                            <label class="btn-radio">
+                                <input type="radio" name="num_images" value="2">
+                                2
+                            </label>
+                            <label class="btn-radio">
+                                <input type="radio" name="num_images" value="3">
+                                3
+                            </label>
+                            <label class="btn-radio">
+                                <input type="radio" name="num_images" value="4">
+                                4
+                            </label>
+                        </div>
+                        <button 
+                            type="submit" 
+                            class="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 w-full font-semibold btn transition-all flex items-center justify-center"
                         >
-                        <button type="submit" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 font-semibold btn">
-                            <i class="fas fa-play-circle mr-1"></i> Animer
+                            <i class="fas fa-magic mr-2"></i> Générer les Images
                         </button>
                     </form>
                 </div>
-                {% endfor %}
+                
+                <!-- Onglet Vidéo -->
+                <div id="video-tab" class="tab-content p-6 bg-green-50 rounded-b-lg hidden">
+                    <form method="POST" action="/generate_video" enctype="multipart/form-data">
+                        <label for="prompt_video" class="block text-lg mb-2 text-green-700 font-semibold">Prompt pour Vidéo :</label>
+                        <textarea 
+                            id="prompt_video" 
+                            name="prompt" 
+                            rows="3" 
+                            class="w-full p-4 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                            placeholder="Décrivez votre vidéo (sujet, mouvement, ambiance, style...)"
+                        >{{ prompt }}</textarea>
+                        <label for="image_file" class="block text-lg mb-2 text-green-700 font-semibold">Optionnel : Uploadez une image pour générer la vidéo depuis celle-ci :</label>
+                        <input 
+                            type="file" 
+                            id="image_file" 
+                            name="image_file" 
+                            accept="image/*" 
+                            class="w-full p-2 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        >
+                        <button 
+                            type="submit" 
+                            class="mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-lg hover:from-green-700 hover:to-green-800 w-full font-semibold btn transition-all flex items-center justify-center"
+                        >
+                            <i class="fas fa-film mr-2"></i> Générer la Vidéo
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Logs agrandis -->
+            <div class="mt-6 bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-auto max-h-60 shadow-inner">
+                <h2 class="text-lg font-semibold mb-2 text-white flex items-center">
+                    <i class="fas fa-terminal mr-2"></i> Logs / Statut :
+                </h2>
+                <div id="log">{{ log }}</div>
             </div>
         </div>
-        {% endif %}
 
-        {% if video_url %}
-        <div class="mt-8 bg-gradient-to-r from-green-100 to-teal-100 p-6 rounded-xl shadow-lg">
-            <h2 class="text-xl font-semibold mb-4 text-green-800 flex items-center">
-                <i class="fas fa-video mr-2"></i> Vidéo Générée :
-            </h2>
-            <video controls class="w-full rounded-lg shadow-md">
-                <source src="{{ video_url }}" type="video/mp4">
-                Votre navigateur ne supporte pas la vidéo.
-            </video>
-            <p class="mt-2 text-sm text-gray-600 text-center">
-                <a href="{{ video_url }}" target="_blank" class="text-green-600 hover:underline font-semibold">
-                    <i class="fas fa-external-link-alt mr-1"></i> Ouvrir en grand
-                </a>
-            </p>
-            <form method="POST" action="/download" class="mt-4 text-center">
-                <input type="hidden" name="media_url" value="{{ video_url }}">
-                <input type="hidden" name="prompt" value="{{ prompt }}">
-                <input type="hidden" name="media_type" value="video">
-                <button 
-                    type="submit" 
-                    class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 font-semibold btn"
-                >
-                    <i class="fas fa-download mr-2"></i> Télécharger la Vidéo
-                </button>
-            </form>
-        </div>
-        {% endif %}
+        <!-- Partie droite : Résultats (images/vidéos) -->
+        <div class="flex-1">
+            {% if image_urls %}
+            <div class="mt-8 bg-gradient-to-r from-blue-100 to-purple-100 p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 text-blue-800 flex items-center">
+                    <i class="fas fa-image mr-2"></i> Images Générées :
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    {% for url in image_urls %}
+                    <div class="text-center">
+                        <img src="{{ url }}" alt="Image générée par Grok" class="w-full rounded-lg shadow-md">
+                        <p class="mt-2 text-sm text-gray-600">
+                            <a href="{{ url }}" target="_blank" class="text-blue-600 hover:underline font-semibold">
+                                <i class="fas fa-external-link-alt mr-1"></i> Ouvrir en grand
+                            </a>
+                        </p>
+                        <form method="POST" action="/download" class="mt-2">
+                            <input type="hidden" name="media_url" value="{{ url }}">
+                            <input type="hidden" name="prompt" value="{{ prompt }}">
+                            <input type="hidden" name="media_type" value="image">
+                            <button type="submit" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 font-semibold btn">
+                                <i class="fas fa-download mr-1"></i> Télécharger
+                            </button>
+                        </form>
+                        <form method="POST" action="/refine_image" class="mt-2">
+                            <input type="hidden" name="image_url" value="{{ url }}">
+                            <input 
+                                type="text" 
+                                name="refine_prompt" 
+                                placeholder="Prompt pour raffiner l'image (e.g., ajouter des détails)" 
+                                class="w-full p-1 border-2 border-purple-300 rounded mb-1 focus:ring-2 focus:ring-purple-500" 
+                                required
+                            >
+                            <button type="submit" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 font-semibold btn">
+                                <i class="fas fa-edit mr-1"></i> Modifier une image
+                            </button>
+                        </form>
+                        <form method="POST" action="/animate_image" class="mt-2">
+                            <input type="hidden" name="image_url" value="{{ url }}">
+                            <label for="animate_prompt_{{ loop.index }}" class="block text-sm mb-1 text-purple-700">Prompt optionnel pour animation :</label>
+                            <input 
+                                id="animate_prompt_{{ loop.index }}" 
+                                name="prompt" 
+                                type="text" 
+                                class="w-full p-1 border-2 border-purple-300 rounded mb-1 focus:ring-2 focus:ring-purple-500"
+                                placeholder="Décrire le mouvement (optionnel)"
+                                value="{{ prompt }}"
+                            >
+                            <button type="submit" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-700 font-semibold btn">
+                                <i class="fas fa-play-circle mr-1"></i> Animer
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
-        <div class="creator">
-            Créé par François MENGUY
+            {% if video_url %}
+            <div class="mt-8 bg-gradient-to-r from-green-100 to-teal-100 p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 text-green-800 flex items-center">
+                    <i class="fas fa-video mr-2"></i> Vidéo Générée :
+                </h2>
+                <video controls class="w-full rounded-lg shadow-md">
+                    <source src="{{ video_url }}" type="video/mp4">
+                    Votre navigateur ne supporte pas la vidéo.
+                </video>
+                <p class="mt-2 text-sm text-gray-600 text-center">
+                    <a href="{{ video_url }}" target="_blank" class="text-green-600 hover:underline font-semibold">
+                        <i class="fas fa-external-link-alt mr-1"></i> Ouvrir en grand
+                    </a>
+                </p>
+                <form method="POST" action="/download" class="mt-4 text-center">
+                    <input type="hidden" name="media_url" value="{{ video_url }}">
+                    <input type="hidden" name="prompt" value="{{ prompt }}">
+                    <input type="hidden" name="media_type" value="video">
+                    <button 
+                        type="submit" 
+                        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 font-semibold btn"
+                    >
+                        <i class="fas fa-download mr-2"></i> Télécharger la Vidéo
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <div class="creator text-center mt-6">
+                Créé par François MENGUY
+            </div>
         </div>
     </div>
 
