@@ -1,0 +1,62 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grok Image Generator - Local</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        #log { white-space: pre-wrap; font-family: monospace; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold mb-6 text-center">Grok Image Generator (xAI)</h1>
+        
+        <form method="POST" action="/generate" class="mb-6">
+            <label for="prompt" class="block text-lg mb-2">Prompt :</label>
+            <textarea 
+                id="prompt" 
+                name="prompt" 
+                rows="3" 
+                class="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Une île faite d'os flottant dans un ciel violet crépusculaire, dark fantasy détaillée"
+            ></textarea>
+            <button 
+                type="submit" 
+                class="mt-4 bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 w-full font-semibold"
+            >
+                Générer l'image
+            </button>
+        </form>
+
+        <div class="mt-6">
+            <h2 class="text-lg font-semibold mb-2">Logs / Statut :</h2>
+            <div id="log" class="bg-gray-800 text-green-300 p-4 rounded font-mono text-sm overflow-auto max-h-40">
+                {{ log }}
+            </div>
+        </div>
+
+                {% if image_url %}
+        <div class="mt-8">
+            <h2 class="text-lg font-semibold mb-2">Image générée :</h2>
+            <img src="{{ image_url }}" alt="Image générée par Grok" class="w-full rounded shadow">
+            <p class="mt-2 text-sm text-gray-600 text-center">
+                <a href="{{ image_url }}" target="_blank" class="text-blue-600 hover:underline">Ouvrir en grand</a>
+            </p>
+            <form method="POST" action="/download" class="mt-4 text-center">
+                <input type="hidden" name="image_url" value="{{ image_url }}">
+                <input type="hidden" name="prompt" value="{{ prompt }}">
+                <button 
+                    type="submit" 
+                    class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 font-semibold"
+                >
+                    Télécharger l'image
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
