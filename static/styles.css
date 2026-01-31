@@ -1,4 +1,123 @@
-#log { white-space: pre-wrap; font-family: monospace; }
-body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.tab-content { transition: opacity 0.3s ease; }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+/* Thème sombre inspiré de VSCode */
+body {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%); /* Fond sombre dégradé comme VSCode */
+    color: #f0f6fc; /* Texte clair par défaut */
+}
+
+.tab-content {
+    transition: opacity 0.3s ease;
+}
+
+/* Conteneur principal : sombre avec bordure subtile */
+.bg-white.bg-opacity-90 {
+    background: rgba(22, 27, 34, 0.95) !important; /* Override Tailwind pour fond sombre */
+    border: 1px solid #30363d; /* Bordure grise comme VSCode */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.5); /* Ombre plus sombre */
+}
+
+/* Titre principal */
+.text-gray-800 {
+    color: #f0f6fc !important; /* Texte clair */
+}
+
+/* Tabs : fond sombre, texte clair */
+.tabs a {
+    background: #21262d; /* Fond sombre pour inactif */
+    color: #c9d1d9; /* Texte gris clair */
+    border: 1px solid #30363d;
+}
+.tabs a.bg-gradient-to-r.from-blue-500.to-blue-600 {
+    background: linear-gradient(90deg, #0ea5e9, #0284c7); /* Bleu VSCode-like pour actif */
+    color: #ffffff;
+}
+.tabs a.bg-gray-200 {
+    background: #21262d; /* Neutre sombre pour inactif */
+    color: #c9d1d9;
+}
+
+/* Contenu des tabs : sombre */
+.bg-blue-50 {
+    background: #0d1117 !important;
+    color: #f0f6fc;
+}
+.bg-green-50 {
+    background: #0d1117 !important;
+    color: #f0f6fc;
+}
+
+/* Labels et inputs */
+.text-blue-700, .text-green-700 {
+    color: #79c0ff !important; /* Bleu clair VSCode */
+}
+input, textarea {
+    background: #161b22 !important; /* Fond sombre */
+    color: #f0f6fc !important; /* Texte clair */
+    border: 1px solid #30363d !important;
+}
+input:focus, textarea:focus {
+    border-color: #0ea5e9 !important; /* Accent bleu au focus */
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+}
+
+/* Boutons : sombre avec accents */
+.btn {
+    background: linear-gradient(90deg, #21262d, #30363d);
+    color: #f0f6fc;
+    border: 1px solid #30363d;
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background: linear-gradient(90deg, #30363d, #484f58);
+}
+.bg-gradient-to-r.from-blue-600.to-blue-700 {
+    background: linear-gradient(90deg, #0ea5e9, #0284c7) !important;
+}
+.bg-gradient-to-r.from-green-600.to-green-700 {
+    background: linear-gradient(90deg, #10b981, #059669) !important;
+}
+.bg-gradient-to-r.from-purple-500.to-purple-600 {
+    background: linear-gradient(90deg, #a855f7, #9333ea) !important;
+}
+.bg-gradient-to-r.from-green-500.to-green-600 {
+    background: linear-gradient(90deg, #10b981, #059669) !important;
+}
+
+/* Logs : terminal-like sombre */
+.bg-gray-900 {
+    background: #0d1117 !important;
+    color: #f0f6fc;
+}
+.text-green-400 {
+    color: #56d364 !important; /* Vert VSCode pour les logs */
+}
+.text-white {
+    color: #f0f6fc !important;
+}
+
+/* Sections générées : sombre avec accents */
+.bg-gradient-to-r.from-blue-100.to-purple-100 {
+    background: linear-gradient(90deg, #161b22, #21262d) !important;
+    border: 1px solid #30363d;
+}
+.bg-gradient-to-r.from-green-100.to-teal-100 {
+    background: linear-gradient(90deg, #161b22, #21262d) !important;
+    border: 1px solid #30363d;
+}
+.text-blue-800, .text-green-800 {
+    color: #79c0ff !important;
+}
+.text-gray-600 {
+    color: #c9d1d9 !important;
+}
+.text-blue-600, .text-green-600 {
+    color: #79c0ff !important;
+}
+
+/* Footer créateur */
+.creator {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.875rem;
+    color: #8b949e;
+}
