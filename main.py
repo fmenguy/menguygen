@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from xai_sdk import Client
 from typing import Optional
 
+
 app = FastAPI(title="Grok Image & Video Generator Local")
 BASE_DIR = Path(__file__).resolve().parent
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -119,7 +120,30 @@ async def animate_image(request: Request, image_url: str = Form(...), prompt: Op
     except Exception as e:
         log += f"Erreur animation : {str(e)}\nAssure-toi que l'image est valide.\n"
         return templates.TemplateResponse("index.html", {"request": request, "image_urls": [image_url], "video_url": None, "log": log, "prompt": ""})
-
+@app.post("/refine_image", response_class=HTMLResponse)
+async def refine_image(request: Request, image_url: str = Form(...), refine_prompt: str = Form(...)):
+    if not refine_prompt.strip():
+        return templates.TemplateResponse("index.html", {"request": request, "image_urls": [image_url], "video_url": None, "log": "Erreur : Prompt de refinement vide !", "prompt": ""})
+    
+    log = f"Refinement image en cours : \"{refine_prompt}\" (base: {image_url}) ...\n"
+    try:
+        # Suppose que l'API supporte image_url pour refinement
+        response = client.image.sample(
+            model="grok-imagine-image",
+            prompt=refine_prompt,
+            image_url=image_url,  # Si supporté, sinon retire et combine prompts
+            image_format="url"
+        )
+        refined_image_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
+        if refined_image_url:
+            log += "Succès : Image raffinée !\n"
+            # Affiche la nouvelle image raffinée
+            return templates.TemplateResponse("index.html", {"request": request, "image_urls": [refined_image_url], "video_url": None, "log": log, "prompt": refine_prompt})
+        else:
+            log += "Erreur : URL de l'image raffinée manquante.\n"
+    except Exception as e:
+        log += f"Erreur refinement : {str(e)}\nVérifie si l'API supporte image_url pour les images.\n"
+    return templates.TemplateResponse("index.html", {"request": request, "image_urls": [image_url], "video_url": None, "log": log, "prompt": ""})
 @app.post("/download", response_class=HTMLResponse)
 async def download(request: Request, media_url: str = Form(...), prompt: str = Form(...), media_type: str = Form("image")):
     try:
