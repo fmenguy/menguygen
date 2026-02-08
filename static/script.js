@@ -1,14 +1,39 @@
-// Improved tab switching with neutral style for inactive tabs
-document.querySelectorAll('.tabs a').forEach(tab => {
+// Tab switching avec data-attributes
+document.querySelectorAll('.tab-link').forEach(tab => {
     tab.addEventListener('click', e => {
         e.preventDefault();
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-        document.querySelectorAll('.tabs a').forEach(t => {
-            t.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'from-green-500', 'to-green-600', 'text-white');
-            t.classList.add('bg-gray-200', 'text-gray-700'); // Neutral style for inactive
+        const targetId = tab.getAttribute('href');
+
+        // Masquer tous les contenus
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+        // Désactiver tous les onglets
+        document.querySelectorAll('.tab-link').forEach(t => {
+            t.classList.remove('active');
         });
-        document.querySelector(e.target.getAttribute('href')).classList.remove('hidden');
-        e.target.classList.remove('bg-gray-200', 'text-gray-700');
-        e.target.classList.add('bg-gradient-to-r', 'text-white', e.target.textContent.includes('Image') ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600');
+
+        // Afficher le contenu cible
+        document.querySelector(targetId).classList.remove('hidden');
+
+        // Activer l'onglet cliqué
+        tab.classList.add('active');
     });
 });
+
+// Téléchargement côté navigateur (pas de POST serveur)
+async function downloadMedia(url, filename) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename || 'image_studio_' + Date.now() + (url.includes('.mp4') ? '.mp4' : '.png');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+        alert('Erreur lors du téléchargement : ' + err.message);
+    }
+}
