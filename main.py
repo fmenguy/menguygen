@@ -7,8 +7,8 @@ import asyncio
 import requests
 from uuid import uuid4
 from pathlib import Path
-from fastapi import FastAPI, Form, Request, UploadFile, File, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import FastAPI, Form, Request, UploadFile, File, Depends, Query
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
@@ -287,3 +287,35 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
         "request": request, "image_urls": [image_url], "video_url": None,
         "log": log, "prompt": ""
     })
+
+
+@app.get("/download", dependencies=[Depends(require_auth)])
+async def download_media(url: str = Query(...)):
+    """Proxy de téléchargement pour contourner les CORS"""
+    try:
+        response = requests.get(url, stream=True, timeout=30)
+        response.raise_for_status()
+
+        # Déterminer le type de contenu et l'extension
+        content_type = response.headers.get('content-type', 'application/octet-stream')
+        extension = '.png'
+        if 'video' in content_type or url.endswith('.mp4'):
+            extension = '.mp4'
+        elif 'jpeg' in content_type or url.endswith('.jpg'):
+            extension = '.jpg'
+        elif 'webp' in content_type or url.endswith('.webp'):
+            extension = '.webp'
+
+        # Nom de fichier
+        filename = f"image_studio_{uuid4().hex[:8]}{extension}"
+
+        # Retourner le stream avec headers de téléchargement
+        return StreamingResponse(
+            response.iter_content(chunk_size=8192),
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+    except Exception as e:
+        return RedirectResponse(url=url)  # Fallback : redirection directe
