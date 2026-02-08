@@ -20,20 +20,13 @@ document.querySelectorAll('.tab-link').forEach(tab => {
     });
 });
 
-// Téléchargement côté navigateur (pas de POST serveur)
-async function downloadMedia(url, filename) {
-    try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename || 'image_studio_' + Date.now() + (url.includes('.mp4') ? '.mp4' : '.png');
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-        alert('Erreur lors du téléchargement : ' + err.message);
-    }
+// Téléchargement via proxy serveur (contourne les CORS)
+function downloadMedia(url) {
+    const downloadUrl = `/download?url=${encodeURIComponent(url)}`;
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = '';  // Le serveur définit le nom via Content-Disposition
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
