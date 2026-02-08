@@ -624,9 +624,15 @@ input[type="file"]::file-selector-button:hover {
     text-transform: uppercase;
 }
 
-.app-footer-name {
+.app-footer-link {
     color: var(--text-dim);
     font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.app-footer-link:hover {
+    color: var(--accent);
 }
 
 /* ═══ Empty State ═══ */
@@ -834,4 +840,26 @@ input[type="file"]::file-selector-button:hover {
     align-items: center;
     gap: 0.5rem;
     justify-content: center;
+}
+
+.login-footer {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-ghost);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.login-footer-link {
+    color: var(--text-dim);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.login-footer-link:hover {
+    color: var(--accent);
 }
