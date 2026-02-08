@@ -9,7 +9,8 @@
       "Bash(timeout:*)",
       "Bash(d:gitgrok-image-web.venvScriptspython.exe -m uvicorn main:app --host 127.0.0.1 --port 8000)",
       "Bash(curl:*)",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(test:*)"
     ]
   }
 }
