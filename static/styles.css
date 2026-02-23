@@ -868,75 +868,75 @@ input[type="file"]::file-selector-button:hover {
 
 .aspect-ratio-group {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .btn-aspect {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.6rem 0.7rem;
-    background: var(--bg-elevated);
+    justify-content: center;
+    gap: 0.25rem;
+    flex: 1;
+    padding: 0.5rem 0.25rem;
+    background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 56px;
+    color: var(--text-dim);
 }
 
 .btn-aspect:hover {
     border-color: var(--border-medium);
+    color: var(--text-normal);
     background: var(--bg-card);
 }
 
 .btn-aspect input[type="radio"] {
-    display: none;
-}
-
-.btn-aspect input[type="radio"]:checked + .aspect-icon + span,
-.btn-aspect input[type="radio"]:checked ~ span {
-    color: var(--accent);
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
 }
 
 .btn-aspect:has(input:checked) {
     border-color: var(--accent);
     background: var(--accent-glow);
-    box-shadow: 0 0 12px rgba(232, 168, 56, 0.1);
-}
-
-.aspect-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    color: var(--text-dim);
-    font-size: 0.85rem;
-}
-
-.aspect-shape {
-    border: 2px solid var(--text-dim);
-    border-radius: 3px;
-    transition: border-color 0.2s;
-}
-
-.btn-aspect:has(input:checked) .aspect-shape {
-    border-color: var(--accent);
-}
-
-.btn-aspect:has(input:checked) .aspect-icon {
     color: var(--accent);
+    box-shadow: 0 0 16px rgba(232, 168, 56, 0.12);
+}
+
+.btn-aspect svg {
+    display: block;
+}
+
+.btn-aspect i {
+    font-size: 0.9rem;
 }
 
 .btn-aspect span {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 600;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: color 0.2s;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+/* ═══ Form Row (side-by-side groups) ═══ */
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row-col {
+    flex: 1;
+    min-width: 0;
+}
+
+.form-row-col .form-label {
+    margin-bottom: 0.4rem;
 }
 
 /* ═══ Session History ═══ */
@@ -1013,24 +1013,25 @@ input[type="file"]::file-selector-button:hover {
 }
 
 .history-thumbs {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 0.5rem;
-    flex-wrap: wrap;
 }
 
 .history-thumb {
     position: relative;
-    width: 64px;
-    height: 64px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
+    background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     transition: border-color 0.2s, transform 0.2s;
+    aspect-ratio: 1;
 }
 
 .history-thumb:hover {
     border-color: var(--accent);
-    transform: scale(1.05);
+    transform: scale(1.03);
+    box-shadow: var(--shadow-md);
 }
 
 .history-thumb img,
@@ -1038,6 +1039,7 @@ input[type="file"]::file-selector-button:hover {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .history-thumb--video i {
@@ -1047,8 +1049,8 @@ input[type="file"]::file-selector-button:hover {
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1rem;
-    background: rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    background: rgba(0, 0, 0, 0.35);
     opacity: 0.8;
     transition: opacity 0.2s;
 }

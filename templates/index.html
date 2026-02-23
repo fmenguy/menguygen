@@ -51,63 +51,68 @@
                         <!-- Aspect Ratio -->
                         <label class="form-label mt-4">Format</label>
                         <div class="aspect-ratio-group mb-4">
-                            <label class="btn-aspect" title="Carré">
-                                <input type="radio" name="aspect_ratio" value="1:1" checked>
-                                <div class="aspect-icon"><div class="aspect-shape" style="width:24px;height:24px"></div></div>
+                            <label class="btn-aspect" title="Carré 1:1">
+                                <input type="radio" name="aspect_ratio" value="1:1">
+                                <svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>1:1</span>
                             </label>
                             <label class="btn-aspect" title="Paysage 4:3">
                                 <input type="radio" name="aspect_ratio" value="4:3">
-                                <div class="aspect-icon"><div class="aspect-shape" style="width:28px;height:21px"></div></div>
+                                <svg viewBox="0 0 28 21" width="22" height="17"><rect x="1" y="1" width="26" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>4:3</span>
                             </label>
                             <label class="btn-aspect" title="Portrait 3:4">
                                 <input type="radio" name="aspect_ratio" value="3:4">
-                                <div class="aspect-icon"><div class="aspect-shape" style="width:21px;height:28px"></div></div>
+                                <svg viewBox="0 0 21 28" width="17" height="22"><rect x="1" y="1" width="19" height="26" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>3:4</span>
                             </label>
                             <label class="btn-aspect" title="Paysage 16:9">
                                 <input type="radio" name="aspect_ratio" value="16:9">
-                                <div class="aspect-icon"><div class="aspect-shape" style="width:32px;height:18px"></div></div>
+                                <svg viewBox="0 0 32 18" width="26" height="15"><rect x="1" y="1" width="30" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>16:9</span>
                             </label>
                             <label class="btn-aspect" title="Portrait 9:16">
-                                <input type="radio" name="aspect_ratio" value="9:16">
-                                <div class="aspect-icon"><div class="aspect-shape" style="width:18px;height:32px"></div></div>
+                                <input type="radio" name="aspect_ratio" value="9:16" checked>
+                                <svg viewBox="0 0 18 32" width="15" height="26"><rect x="1" y="1" width="16" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>9:16</span>
                             </label>
                             <label class="btn-aspect" title="Automatique">
                                 <input type="radio" name="aspect_ratio" value="auto">
-                                <div class="aspect-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                                <i class="fas fa-wand-magic-sparkles"></i>
                                 <span>Auto</span>
                             </label>
                         </div>
 
-                        <!-- Resolution -->
-                        <label class="form-label mt-4">Résolution</label>
-                        <div class="radio-group mb-4">
-                            <label class="btn-radio">
-                                <input type="radio" name="resolution" value="1k" checked> 1K
-                            </label>
-                            <label class="btn-radio">
-                                <input type="radio" name="resolution" value="2k"> 2K
-                            </label>
-                        </div>
-
-                        <label class="form-label mt-4">Nombre d'images</label>
-                        <div class="radio-group mb-4">
-                            <label class="btn-radio">
-                                <input type="radio" name="num_images" value="1" checked> 1
-                            </label>
-                            <label class="btn-radio">
-                                <input type="radio" name="num_images" value="2"> 2
-                            </label>
-                            <label class="btn-radio">
-                                <input type="radio" name="num_images" value="3"> 3
-                            </label>
-                            <label class="btn-radio">
-                                <input type="radio" name="num_images" value="4"> 4
-                            </label>
+                        <!-- Resolution & Count row -->
+                        <div class="form-row mb-4">
+                            <div class="form-row-col">
+                                <label class="form-label">Résolution</label>
+                                <div class="radio-group">
+                                    <label class="btn-radio">
+                                        <input type="radio" name="resolution" value="1k" checked> 1K
+                                    </label>
+                                    <label class="btn-radio">
+                                        <input type="radio" name="resolution" value="2k"> 2K
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-row-col">
+                                <label class="form-label">Images</label>
+                                <div class="radio-group">
+                                    <label class="btn-radio">
+                                        <input type="radio" name="num_images" value="1"> 1
+                                    </label>
+                                    <label class="btn-radio">
+                                        <input type="radio" name="num_images" value="2"> 2
+                                    </label>
+                                    <label class="btn-radio">
+                                        <input type="radio" name="num_images" value="3"> 3
+                                    </label>
+                                    <label class="btn-radio">
+                                        <input type="radio" name="num_images" value="4" checked> 4
+                                    </label>
+                                </div>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary mt-4">
