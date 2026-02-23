@@ -116,6 +116,24 @@ def _add_to_history(request: Request, entry_type: str, urls: list, prompt: str):
     })
 
 
+FRANCOIS_PRESET = (
+    "A young geeky man with short black hair, brown eyes, 3-day stubble beard, "
+    "wearing glasses and a hoodie with the hood down, sitting in front of a PC "
+    "with an ultrawide curved monitor displaying VSCode with a dark theme"
+)
+
+
+def _expand_prompt(prompt: str) -> str:
+    """Replace 'François' keyword with the creator's visual preset."""
+    import re
+    return re.sub(
+        r'\bFran[cç]ois\b',
+        FRANCOIS_PRESET,
+        prompt,
+        flags=re.IGNORECASE,
+    )
+
+
 async def _generate_one_image(prompt: str, aspect_ratio: str = "1:1", resolution: str = "1k"):
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, lambda: client.image.sample(
