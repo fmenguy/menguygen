@@ -5,6 +5,7 @@ load_dotenv(_Path(__file__).resolve().parent / ".env")
 
 import asyncio
 import requests
+from datetime import datetime
 from uuid import uuid4
 from pathlib import Path
 from fastapi import FastAPI, Form, Request, UploadFile, File, Depends, Query
@@ -100,12 +101,29 @@ def _download_media(url: str, filepath: str):
         f.write(response.content)
 
 
-async def _generate_one_image(prompt: str):
+ALLOWED_ASPECT_RATIOS = {"1:1", "4:3", "3:4", "16:9", "9:16", "auto"}
+ALLOWED_RESOLUTIONS = {"1k", "2k"}
+
+
+def _add_to_history(request: Request, entry_type: str, urls: list, prompt: str):
+    if "history" not in request.session:
+        request.session["history"] = []
+    request.session["history"].insert(0, {
+        "type": entry_type,
+        "urls": urls,
+        "prompt": prompt,
+        "timestamp": datetime.now().strftime("%H:%M"),
+    })
+
+
+async def _generate_one_image(prompt: str, aspect_ratio: str = "1:1", resolution: str = "1k"):
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, lambda: client.image.sample(
         model="grok-imagine-image",
         prompt=prompt,
-        image_format="url"
+        image_format="url",
+        aspect_ratio=aspect_ratio,
+        resolution=resolution
     ))
 
 
@@ -116,23 +134,33 @@ async def home(request: Request):
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "image_urls": None, "video_url": None,
-         "log": "Prêt à générer (images ou vidéos) !", "prompt": ""}
+         "log": "Prêt à générer (images ou vidéos) !", "prompt": "",
+         "history": request.session.get("history", [])}
     )
 
 
 @app.post("/generate_image", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def generate_image(request: Request, prompt: str = Form(...), num_images: int = Form(1)):
+async def generate_image(
+    request: Request,
+    prompt: str = Form(...),
+    num_images: int = Form(1),
+    aspect_ratio: str = Form("1:1"),
+    resolution: str = Form("1k"),
+):
     if not prompt.strip():
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": None, "video_url": None,
-            "log": "Erreur : Prompt vide pour image !", "prompt": ""
+            "log": "Erreur : Prompt vide pour image !", "prompt": "",
+            "history": request.session.get("history", [])
         })
 
     num_images = min(max(num_images, 1), 4)
-    log = f"Génération de {num_images} image(s) en cours : \"{prompt}\" ...\n"
+    aspect_ratio = aspect_ratio if aspect_ratio in ALLOWED_ASPECT_RATIOS else "1:1"
+    resolution = resolution if resolution in ALLOWED_RESOLUTIONS else "1k"
+    log = f"Génération de {num_images} image(s) [{aspect_ratio}, {resolution}] en cours : \"{prompt}\" ...\n"
     try:
         results = await asyncio.gather(
-            *[_generate_one_image(prompt) for _ in range(num_images)],
+            *[_generate_one_image(prompt, aspect_ratio, resolution) for _ in range(num_images)],
             return_exceptions=True
         )
         image_urls = []
@@ -148,15 +176,18 @@ async def generate_image(request: Request, prompt: str = Form(...), num_images: 
                 log += f"Erreur pour image {i+1} : URL manquante.\n"
         if image_urls:
             log += "Succès : Images générées !\n"
+            _add_to_history(request, "image", image_urls, prompt)
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": image_urls, "video_url": None,
-            "log": log, "prompt": prompt
+            "log": log, "prompt": prompt,
+            "history": request.session.get("history", [])
         })
     except Exception as e:
         log += f"Erreur génération images : {e}\n"
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": None, "video_url": None,
-            "log": log, "prompt": ""
+            "log": log, "prompt": "",
+            "history": request.session.get("history", [])
         })
 
 
@@ -165,7 +196,8 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
     if not prompt.strip() and not image_file:
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": None, "video_url": None,
-            "log": "Erreur : Prompt vide et aucune image uploadée pour vidéo !", "prompt": ""
+            "log": "Erreur : Prompt vide et aucune image uploadée pour vidéo !", "prompt": "",
+            "history": request.session.get("history", [])
         })
 
     log = f"Génération vidéo en cours : \"{prompt}\""
@@ -179,14 +211,16 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
             if image_file.content_type not in ALLOWED_MIME_TYPES:
                 return templates.TemplateResponse("index.html", {
                     "request": request, "image_urls": None, "video_url": None,
-                    "log": f"Erreur : Type de fichier non autorisé ({image_file.content_type}). Formats acceptés : PNG, JPEG, WebP.", "prompt": prompt
+                    "log": f"Erreur : Type de fichier non autorisé ({image_file.content_type}). Formats acceptés : PNG, JPEG, WebP.", "prompt": prompt,
+                    "history": request.session.get("history", [])
                 })
 
             content = await image_file.read()
             if len(content) > MAX_UPLOAD_SIZE:
                 return templates.TemplateResponse("index.html", {
                     "request": request, "image_urls": None, "video_url": None,
-                    "log": "Erreur : Fichier trop volumineux (max 10 Mo).", "prompt": prompt
+                    "log": "Erreur : Fichier trop volumineux (max 10 Mo).", "prompt": prompt,
+                    "history": request.session.get("history", [])
                 })
 
             ext = os.path.splitext(image_file.filename or "")[1] or ".png"
@@ -209,17 +243,20 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
             log += "Succès : Vidéo générée !\n"
+            _add_to_history(request, "video", [video_url], prompt)
         else:
             log += "Erreur : URL de vidéo manquante.\n"
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": None, "video_url": video_url,
-            "log": log, "prompt": prompt
+            "log": log, "prompt": prompt,
+            "history": request.session.get("history", [])
         })
     except Exception as e:
         log += f"Erreur génération vidéo : {e}\n"
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": None, "video_url": None,
-            "log": log, "prompt": ""
+            "log": log, "prompt": "",
+            "history": request.session.get("history", [])
         })
     finally:
         if temp_path and os.path.exists(temp_path):
@@ -242,17 +279,20 @@ async def animate_image(request: Request, image_url: str = Form(...), prompt: Op
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
             log += "Succès : Animation terminée !\n"
+            _add_to_history(request, "video", [video_url], animate_prompt)
         else:
             log += "Erreur : URL de vidéo manquante.\n"
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": [image_url], "video_url": video_url,
-            "log": log, "prompt": animate_prompt
+            "log": log, "prompt": animate_prompt,
+            "history": request.session.get("history", [])
         })
     except Exception as e:
         log += f"Erreur animation : {e}\n"
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": [image_url], "video_url": None,
-            "log": log, "prompt": ""
+            "log": log, "prompt": "",
+            "history": request.session.get("history", [])
         })
 
 
@@ -261,7 +301,8 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
     if not refine_prompt.strip():
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": [image_url], "video_url": None,
-            "log": "Erreur : Prompt de refinement vide !", "prompt": ""
+            "log": "Erreur : Prompt de refinement vide !", "prompt": "",
+            "history": request.session.get("history", [])
         })
 
     log = f"Refinement image en cours : \"{refine_prompt}\" ...\n"
@@ -275,9 +316,11 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
         refined_image_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if refined_image_url:
             log += "Succès : Image raffinée !\n"
+            _add_to_history(request, "image", [refined_image_url], refine_prompt)
             return templates.TemplateResponse("index.html", {
                 "request": request, "image_urls": [refined_image_url], "video_url": None,
-                "log": log, "prompt": refine_prompt
+                "log": log, "prompt": refine_prompt,
+                "history": request.session.get("history", [])
             })
         else:
             log += "Erreur : URL de l'image raffinée manquante.\n"
@@ -285,7 +328,8 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
         log += f"Erreur refinement : {e}\n"
     return templates.TemplateResponse("index.html", {
         "request": request, "image_urls": [image_url], "video_url": None,
-        "log": log, "prompt": ""
+        "log": log, "prompt": "",
+        "history": request.session.get("history", [])
     })
 
 

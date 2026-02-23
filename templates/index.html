@@ -48,6 +48,52 @@
                             placeholder="Décrivez votre image (sujet, scène, ambiance, style...)"
                         >{{ prompt }}</textarea>
 
+                        <!-- Aspect Ratio -->
+                        <label class="form-label mt-4">Format</label>
+                        <div class="aspect-ratio-group mb-4">
+                            <label class="btn-aspect" title="Carré">
+                                <input type="radio" name="aspect_ratio" value="1:1" checked>
+                                <div class="aspect-icon"><div class="aspect-shape" style="width:24px;height:24px"></div></div>
+                                <span>1:1</span>
+                            </label>
+                            <label class="btn-aspect" title="Paysage 4:3">
+                                <input type="radio" name="aspect_ratio" value="4:3">
+                                <div class="aspect-icon"><div class="aspect-shape" style="width:28px;height:21px"></div></div>
+                                <span>4:3</span>
+                            </label>
+                            <label class="btn-aspect" title="Portrait 3:4">
+                                <input type="radio" name="aspect_ratio" value="3:4">
+                                <div class="aspect-icon"><div class="aspect-shape" style="width:21px;height:28px"></div></div>
+                                <span>3:4</span>
+                            </label>
+                            <label class="btn-aspect" title="Paysage 16:9">
+                                <input type="radio" name="aspect_ratio" value="16:9">
+                                <div class="aspect-icon"><div class="aspect-shape" style="width:32px;height:18px"></div></div>
+                                <span>16:9</span>
+                            </label>
+                            <label class="btn-aspect" title="Portrait 9:16">
+                                <input type="radio" name="aspect_ratio" value="9:16">
+                                <div class="aspect-icon"><div class="aspect-shape" style="width:18px;height:32px"></div></div>
+                                <span>9:16</span>
+                            </label>
+                            <label class="btn-aspect" title="Automatique">
+                                <input type="radio" name="aspect_ratio" value="auto">
+                                <div class="aspect-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                                <span>Auto</span>
+                            </label>
+                        </div>
+
+                        <!-- Resolution -->
+                        <label class="form-label mt-4">Résolution</label>
+                        <div class="radio-group mb-4">
+                            <label class="btn-radio">
+                                <input type="radio" name="resolution" value="1k" checked> 1K
+                            </label>
+                            <label class="btn-radio">
+                                <input type="radio" name="resolution" value="2k"> 2K
+                            </label>
+                        </div>
+
                         <label class="form-label mt-4">Nombre d'images</label>
                         <div class="radio-group mb-4">
                             <label class="btn-radio">
@@ -184,6 +230,42 @@
                     <div class="empty-state-text">
                         Décrivez votre vision et laissez<br>la magie opérer.
                     </div>
+                </div>
+                {% endif %}
+
+                <!-- Session History -->
+                {% if history %}
+                <div class="history-section">
+                    <div class="history-header">
+                        <i class="fas fa-clock-rotate-left"></i> Historique de session
+                    </div>
+                    {% for entry in history %}
+                    <div class="history-card">
+                        <div class="history-card-header">
+                            {% if entry.type == "image" %}
+                                <i class="fas fa-image history-icon history-icon--image"></i>
+                            {% else %}
+                                <i class="fas fa-video history-icon history-icon--video"></i>
+                            {% endif %}
+                            <span class="history-prompt">{{ entry.prompt[:80] }}{% if entry.prompt|length > 80 %}...{% endif %}</span>
+                            <span class="history-time">{{ entry.timestamp }}</span>
+                        </div>
+                        <div class="history-thumbs">
+                            {% for url in entry.urls %}
+                                {% if entry.type == "image" %}
+                                    <a href="{{ url }}" target="_blank" class="history-thumb">
+                                        <img src="{{ url }}" alt="Image générée" loading="lazy">
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url }}" target="_blank" class="history-thumb history-thumb--video">
+                                        <video src="{{ url }}" muted preload="metadata"></video>
+                                        <i class="fas fa-play"></i>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
                 {% endif %}
             </div>
