@@ -101,7 +101,7 @@ def _download_media(url: str, filepath: str):
         f.write(response.content)
 
 
-ALLOWED_ASPECT_RATIOS = {"1:1", "4:3", "3:4", "16:9", "9:16", "auto"}
+ALLOWED_ASPECT_RATIOS = {"1:1", "4:3", "3:4", "16:9", "9:16"}
 ALLOWED_RESOLUTIONS = {"1k", "2k"}
 
 

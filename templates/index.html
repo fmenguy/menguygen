@@ -76,11 +76,6 @@
                                 <svg viewBox="0 0 18 32" width="15" height="26"><rect x="1" y="1" width="16" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>9:16</span>
                             </label>
-                            <label class="btn-aspect" title="Automatique">
-                                <input type="radio" name="aspect_ratio" value="auto">
-                                <i class="fas fa-wand-magic-sparkles"></i>
-                                <span>Auto</span>
-                            </label>
                         </div>
 
                         <!-- Resolution & Count row -->
@@ -253,14 +248,19 @@
                 <!-- Session History -->
                 {% if history %}
                 <div class="history-section">
-                    <div class="history-header">
-                        <i class="fas fa-clock-rotate-left"></i> Historique de session
-                        <form method="POST" action="/clear_history" class="history-clear-form">
-                            <button type="submit" class="btn-clear-history" title="Vider l'historique">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </form>
-                    </div>
+                    <button type="button" class="btn-history-toggle" onclick="document.getElementById('history-list').classList.toggle('hidden'); this.classList.toggle('open')">
+                        <i class="fas fa-clock-rotate-left"></i>
+                        Historique ({{ history|length }})
+                        <i class="fas fa-chevron-down history-chevron"></i>
+                    </button>
+                    <div id="history-list" class="hidden">
+                        <div class="history-toolbar">
+                            <form method="POST" action="/clear_history" class="history-clear-form">
+                                <button type="submit" class="btn-clear-history" title="Vider l'historique">
+                                    <i class="fas fa-trash-alt"></i> Vider
+                                </button>
+                            </form>
+                        </div>
                     {% for entry in history %}
                     <div class="history-card">
                         <div class="history-card-header">
@@ -288,6 +288,7 @@
                         </div>
                     </div>
                     {% endfor %}
+                    </div>
                 </div>
                 {% endif %}
             </div>
