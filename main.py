@@ -18,7 +18,7 @@ from typing import Optional
 
 from auth import APP_PASSWORD, check_rate_limit, record_failed_attempt, clear_attempts
 
-app = FastAPI(title="Image Studio")
+app = FastAPI(title="MenguyGen")
 BASE_DIR = Path(__file__).resolve().parent
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -46,7 +46,7 @@ MAX_UPLOAD_SIZE = 10 * 1024 * 1024
 # --- Vérification d'authentification (dépendance) ---
 
 async def require_auth(request: Request):
-    if not request.session.get("authenticated"):
+    if not request.session.get("authenticated") and not request.session.get("guest"):
         raise RedirectException()
 
 class RedirectException(Exception):
@@ -92,7 +92,26 @@ async def auth_logout(request: Request):
     return RedirectResponse("/auth/login")
 
 
+# --- Mode invité ---
+
+@app.get("/guest", response_class=HTMLResponse)
+async def guest_page(request: Request):
+    return templates.TemplateResponse("guest.html", {"request": request})
+
+
+@app.post("/auth/guest")
+async def auth_guest(request: Request):
+    request.session["guest"] = True
+    return RedirectResponse("/", status_code=303)
+
+
 # --- Helpers ---
+
+def _get_client(request: Request, api_key: Optional[str] = None) -> Client:
+    """Return a per-request Client for guests, or the global client for admins."""
+    if request.session.get("guest") and api_key:
+        return Client(api_key=api_key)
+    return client
 
 def _download_media(url: str, filepath: str):
     response = requests.get(url, timeout=30)
@@ -134,9 +153,10 @@ def _expand_prompt(prompt: str) -> str:
     )
 
 
-async def _generate_one_image(prompt: str, aspect_ratio: str = "1:1", resolution: str = "1k"):
+async def _generate_one_image(prompt: str, aspect_ratio: str = "1:1", resolution: str = "1k", xai_client: Client = None):
+    c = xai_client or client
     loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, lambda: client.image.sample(
+    return await loop.run_in_executor(None, lambda: c.image.sample(
         model="grok-imagine-image",
         prompt=prompt,
         image_format="url",
@@ -147,13 +167,26 @@ async def _generate_one_image(prompt: str, aspect_ratio: str = "1:1", resolution
 
 # --- Routes principales (protégées par require_auth) ---
 
+def _tpl_ctx(request: Request, **kwargs):
+    """Build template context with common fields."""
+    ctx = {
+        "request": request,
+        "image_urls": None,
+        "video_url": None,
+        "log": "",
+        "prompt": "",
+        "history": request.session.get("history", []),
+        "is_guest": request.session.get("guest", False),
+    }
+    ctx.update(kwargs)
+    return ctx
+
+
 @app.get("/", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
 async def home(request: Request):
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "image_urls": None, "video_url": None,
-         "log": "Prêt à générer (images ou vidéos) !", "prompt": "",
-         "history": request.session.get("history", [])}
+        _tpl_ctx(request, log="Prêt à générer (images ou vidéos) !")
     )
 
 
@@ -165,14 +198,13 @@ async def generate_image(
     aspect_ratio: str = Form("9:16"),
     resolution: str = Form("1k"),
     test_mode: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
 ):
     if not prompt.strip():
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": None, "video_url": None,
-            "log": "Erreur : Prompt vide pour image !", "prompt": "",
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, log="Erreur : Prompt vide pour image !"))
 
+    xai_client = _get_client(request, api_key)
     num_images = min(max(num_images, 1), 4)
     aspect_ratio = aspect_ratio if aspect_ratio in ALLOWED_ASPECT_RATIOS else "9:16"
     resolution = resolution if resolution in ALLOWED_RESOLUTIONS else "1k"
@@ -182,7 +214,7 @@ async def generate_image(
         log += f"Preset appliqué.\n"
     try:
         results = await asyncio.gather(
-            *[_generate_one_image(expanded_prompt, aspect_ratio, resolution) for _ in range(num_images)],
+            *[_generate_one_image(expanded_prompt, aspect_ratio, resolution, xai_client=xai_client) for _ in range(num_images)],
             return_exceptions=True
         )
         image_urls = []
@@ -200,29 +232,21 @@ async def generate_image(
             log += "Succès : Images générées !\n"
             if not test_mode:
                 _add_to_history(request, "image", image_urls, prompt)
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": image_urls, "video_url": None,
-            "log": log, "prompt": prompt,
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, image_urls=image_urls, log=log, prompt=prompt))
     except Exception as e:
         log += f"Erreur génération images : {e}\n"
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": None, "video_url": None,
-            "log": log, "prompt": "",
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, log=log))
 
 
 @app.post("/generate_video", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def generate_video(request: Request, prompt: str = Form(...), image_file: UploadFile = File(None), test_mode: Optional[str] = Form(None)):
+async def generate_video(request: Request, prompt: str = Form(...), image_file: UploadFile = File(None), test_mode: Optional[str] = Form(None), api_key: Optional[str] = Form(None)):
     if not prompt.strip() and not image_file:
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": None, "video_url": None,
-            "log": "Erreur : Prompt vide et aucune image uploadée pour vidéo !", "prompt": "",
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, log="Erreur : Prompt vide et aucune image uploadée pour vidéo !"))
 
+    xai_client = _get_client(request, api_key)
     expanded_prompt = _expand_prompt(prompt)
     log = f"Génération vidéo en cours : \"{prompt}\""
     if image_file:
@@ -235,19 +259,13 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
     try:
         if image_file:
             if image_file.content_type not in ALLOWED_MIME_TYPES:
-                return templates.TemplateResponse("index.html", {
-                    "request": request, "image_urls": None, "video_url": None,
-                    "log": f"Erreur : Type de fichier non autorisé ({image_file.content_type}). Formats acceptés : PNG, JPEG, WebP.", "prompt": prompt,
-                    "history": request.session.get("history", [])
-                })
+                return templates.TemplateResponse("index.html",
+                    _tpl_ctx(request, log=f"Erreur : Type de fichier non autorisé ({image_file.content_type}). Formats acceptés : PNG, JPEG, WebP.", prompt=prompt))
 
             content = await image_file.read()
             if len(content) > MAX_UPLOAD_SIZE:
-                return templates.TemplateResponse("index.html", {
-                    "request": request, "image_urls": None, "video_url": None,
-                    "log": "Erreur : Fichier trop volumineux (max 10 Mo).", "prompt": prompt,
-                    "history": request.session.get("history", [])
-                })
+                return templates.TemplateResponse("index.html",
+                    _tpl_ctx(request, log="Erreur : Fichier trop volumineux (max 10 Mo).", prompt=prompt))
 
             ext = os.path.splitext(image_file.filename or "")[1] or ".png"
             temp_path = os.path.join(SAVE_DIR, f"temp_{uuid4().hex}{ext}")
@@ -255,13 +273,13 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
                 f.write(content)
 
             image_url = f"file://{temp_path}"
-            response = client.video.generate(
+            response = xai_client.video.generate(
                 model="grok-imagine-video",
                 prompt=expanded_prompt,
                 image_url=image_url
             )
         else:
-            response = client.video.generate(
+            response = xai_client.video.generate(
                 model="grok-imagine-video",
                 prompt=expanded_prompt
             )
@@ -273,18 +291,12 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
                 _add_to_history(request, "video", [video_url], prompt)
         else:
             log += "Erreur : URL de vidéo manquante.\n"
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": None, "video_url": video_url,
-            "log": log, "prompt": prompt,
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, video_url=video_url, log=log, prompt=prompt))
     except Exception as e:
         log += f"Erreur génération vidéo : {e}\n"
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": None, "video_url": None,
-            "log": log, "prompt": "",
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, log=log))
     finally:
         if temp_path and os.path.exists(temp_path):
             try:
@@ -294,11 +306,12 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
 
 
 @app.post("/animate_image", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def animate_image(request: Request, image_url: str = Form(...), prompt: Optional[str] = Form(None)):
+async def animate_image(request: Request, image_url: str = Form(...), prompt: Optional[str] = Form(None), api_key: Optional[str] = Form(None)):
+    xai_client = _get_client(request, api_key)
     animate_prompt = prompt.strip() if prompt else "Animer cette image avec mouvement fluide et naturel"
     log = f"Animation image→vidéo en cours : \"{animate_prompt}\" ...\n"
     try:
-        response = client.video.generate(
+        response = xai_client.video.generate(
             model="grok-imagine-video",
             prompt=animate_prompt,
             image_url=image_url
@@ -309,32 +322,24 @@ async def animate_image(request: Request, image_url: str = Form(...), prompt: Op
             _add_to_history(request, "video", [video_url], animate_prompt)
         else:
             log += "Erreur : URL de vidéo manquante.\n"
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": [image_url], "video_url": video_url,
-            "log": log, "prompt": animate_prompt,
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, image_urls=[image_url], video_url=video_url, log=log, prompt=animate_prompt))
     except Exception as e:
         log += f"Erreur animation : {e}\n"
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": [image_url], "video_url": None,
-            "log": log, "prompt": "",
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, image_urls=[image_url], log=log))
 
 
 @app.post("/refine_image", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def refine_image(request: Request, image_url: str = Form(...), refine_prompt: str = Form(...)):
+async def refine_image(request: Request, image_url: str = Form(...), refine_prompt: str = Form(...), api_key: Optional[str] = Form(None)):
     if not refine_prompt.strip():
-        return templates.TemplateResponse("index.html", {
-            "request": request, "image_urls": [image_url], "video_url": None,
-            "log": "Erreur : Prompt de refinement vide !", "prompt": "",
-            "history": request.session.get("history", [])
-        })
+        return templates.TemplateResponse("index.html",
+            _tpl_ctx(request, image_urls=[image_url], log="Erreur : Prompt de refinement vide !"))
 
+    xai_client = _get_client(request, api_key)
     log = f"Refinement image en cours : \"{refine_prompt}\" ...\n"
     try:
-        response = client.image.sample(
+        response = xai_client.image.sample(
             model="grok-imagine-image",
             prompt=refine_prompt,
             image_url=image_url,
@@ -344,20 +349,14 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
         if refined_image_url:
             log += "Succès : Image raffinée !\n"
             _add_to_history(request, "image", [refined_image_url], refine_prompt)
-            return templates.TemplateResponse("index.html", {
-                "request": request, "image_urls": [refined_image_url], "video_url": None,
-                "log": log, "prompt": refine_prompt,
-                "history": request.session.get("history", [])
-            })
+            return templates.TemplateResponse("index.html",
+                _tpl_ctx(request, image_urls=[refined_image_url], log=log, prompt=refine_prompt))
         else:
             log += "Erreur : URL de l'image raffinée manquante.\n"
     except Exception as e:
         log += f"Erreur refinement : {e}\n"
-    return templates.TemplateResponse("index.html", {
-        "request": request, "image_urls": [image_url], "video_url": None,
-        "log": log, "prompt": "",
-        "history": request.session.get("history", [])
-    })
+    return templates.TemplateResponse("index.html",
+        _tpl_ctx(request, image_urls=[image_url], log=log))
 
 
 @app.post("/clear_history", dependencies=[Depends(require_auth)])
@@ -384,7 +383,7 @@ async def download_media(url: str = Query(...)):
             extension = '.webp'
 
         # Nom de fichier
-        filename = f"image_studio_{uuid4().hex[:8]}{extension}"
+        filename = f"menguygen_{uuid4().hex[:8]}{extension}"
 
         # Retourner le stream avec headers de téléchargement
         return StreamingResponse(

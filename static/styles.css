@@ -865,6 +865,116 @@ input[type="file"]::file-selector-button:hover {
     color: var(--accent);
 }
 
+/* ═══ Login Divider & Guest Button ═══ */
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.25rem 0;
+    color: var(--text-ghost);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
+}
+
+.btn-guest {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem 2rem;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+}
+
+.btn-guest:hover {
+    border-color: var(--accent-cool);
+    color: var(--accent-cool);
+    background: rgba(110, 168, 215, 0.06);
+}
+
+/* Guest page logo */
+.guest-logo {
+    background: linear-gradient(135deg, var(--accent-cool), #4a8ab8) !important;
+}
+
+.guest-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--text-ghost);
+    margin: -0.5rem 0 1.25rem;
+    padding: 0 0.25rem;
+}
+
+.guest-hint i {
+    color: var(--accent-mint);
+    font-size: 0.7rem;
+}
+
+.btn-guest-submit {
+    background: linear-gradient(135deg, var(--accent-cool), #4a8ab8) !important;
+}
+
+.btn-guest-submit:hover {
+    box-shadow: 0 4px 24px rgba(110, 168, 215, 0.3) !important;
+}
+
+.guest-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 1.25rem;
+    color: var(--text-ghost);
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.guest-back:hover {
+    color: var(--text-normal);
+}
+
+/* ═══ Header Actions & Guest Badge ═══ */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.badge-guest {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.65rem;
+    background: rgba(110, 168, 215, 0.1);
+    border: 1px solid rgba(110, 168, 215, 0.25);
+    border-radius: 999px;
+    color: var(--accent-cool);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
 /* ═══ Aspect Ratio Selector ═══ */
 
 .aspect-ratio-group {

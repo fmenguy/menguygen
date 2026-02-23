@@ -1,7 +1,17 @@
 # Changelog
 
+## v6
+- Renommage "Image Studio" → **MenguyGen**
+- Mode invité : les visiteurs peuvent utiliser l'app avec leur propre clé API xAI
+  - Nouvelle page `/guest` pour saisir la clé
+  - Clé stockée dans `localStorage` (jamais côté serveur)
+  - Badge "Invité" dans le header, déconnexion supprime la clé
+  - Client xAI créé à la volée par requête pour les invités
+- Lien vers [AI Prompt](https://aiprompt.fmenguy.fr/) dans le footer
+- Refactoring : `_tpl_ctx()` helper pour les contextes template
+
 ## v5
-- Logo cliquable : retour à l'accueil en cliquant sur "Image Studio"
+- Logo cliquable : retour à l'accueil en cliquant sur "MenguyGen"
 
 ## v4
 - Suppression du ratio "Auto" (non fonctionnel avec l'API)

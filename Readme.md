@@ -1,4 +1,4 @@
-# Image Studio
+# MenguyGen
 
 Mon app perso de génération d'images et vidéos via l'API xAI Grok. Interface dark UI avec thème cinématique or/ambre.
 
