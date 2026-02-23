@@ -257,13 +257,13 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
             image_url = f"file://{temp_path}"
             response = client.video.generate(
                 model="grok-imagine-video",
-                prompt=prompt,
+                prompt=expanded_prompt,
                 image_url=image_url
             )
         else:
             response = client.video.generate(
                 model="grok-imagine-video",
-                prompt=prompt
+                prompt=expanded_prompt
             )
 
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
