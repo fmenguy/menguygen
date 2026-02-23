@@ -7,9 +7,12 @@ Application web moderne de génération d'images et de vidéos propulsée par l'
 ## 📋 Fonctionnalités
 
 - **Génération d'images** : Créez jusqu'à 4 images simultanément à partir d'un prompt textuel
+- **Choix du format** : Sélecteur visuel de ratio d'aspect (1:1, 4:3, 3:4, 16:9, 9:16, Auto)
+- **Résolution** : Choix entre 1K et 2K
 - **Génération de vidéos** : Transformez vos idées en vidéos avec ou sans image de référence
 - **Modification d'images** : Raffinez vos créations avec de nouveaux prompts
 - **Animation d'images** : Donnez vie à vos images statiques
+- **Historique de session** : Retrouvez toutes vos générations (images et vidéos) de la session en cours
 - **Téléchargement direct** : Sauvegardez vos créations en un clic
 - **Authentification sécurisée** : Protection par mot de passe avec rate limiting anti-bruteforce
 - **Interface responsive** : Design adapté à tous les écrans (desktop, tablette, mobile)
@@ -147,8 +150,12 @@ Le projet inclut un fichier `render.yaml` pour un déploiement automatisé sur [
 1. Connectez-vous avec votre mot de passe
 2. Onglet **Image**
 3. Saisissez un prompt descriptif
-4. Choisissez le nombre d'images (1-4)
-5. Cliquez sur **Générer les Images**
+4. Choisissez le **format** (ratio d'aspect) via les icônes visuelles (défaut : 9:16)
+5. Choisissez la **résolution** (1K ou 2K)
+6. Choisissez le **nombre d'images** (1-4, défaut : 4)
+7. Cliquez sur **Générer les Images**
+
+> Les générations sont automatiquement ajoutées à l'**historique de session**, visible dans le panneau de droite. L'historique persiste entre les rechargements de page et est effacé à la déconnexion.
 
 ### Génération de vidéos
 

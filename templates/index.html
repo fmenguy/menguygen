@@ -115,9 +115,15 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary mt-4">
-                            <i class="fas fa-magic"></i> Générer les Images
-                        </button>
+                        <div class="form-footer mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-magic"></i> Générer les Images
+                            </button>
+                            <label class="toggle-test" title="Mode test : les images ne seront pas enregistrées dans l'historique">
+                                <input type="checkbox" name="test_mode" value="1">
+                                <i class="fas fa-flask"></i> Test
+                            </label>
+                        </div>
                     </form>
                 </div>
 
@@ -140,9 +146,15 @@
                             accept="image/png,image/jpeg,image/webp"
                         >
 
-                        <button type="submit" class="btn btn-generate mt-4">
-                            <i class="fas fa-film"></i> Générer la Vidéo
-                        </button>
+                        <div class="form-footer mt-4">
+                            <button type="submit" class="btn btn-generate">
+                                <i class="fas fa-film"></i> Générer la Vidéo
+                            </button>
+                            <label class="toggle-test" title="Mode test : la vidéo ne sera pas enregistrée dans l'historique">
+                                <input type="checkbox" name="test_mode" value="1">
+                                <i class="fas fa-flask"></i> Test
+                            </label>
+                        </div>
                     </form>
                 </div>
 
@@ -243,6 +255,11 @@
                 <div class="history-section">
                     <div class="history-header">
                         <i class="fas fa-clock-rotate-left"></i> Historique de session
+                        <form method="POST" action="/clear_history" class="history-clear-form">
+                            <button type="submit" class="btn-clear-history" title="Vider l'historique">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
                     </div>
                     {% for entry in history %}
                     <div class="history-card">

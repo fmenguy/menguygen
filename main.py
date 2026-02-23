@@ -146,6 +146,7 @@ async def generate_image(
     num_images: int = Form(1),
     aspect_ratio: str = Form("9:16"),
     resolution: str = Form("1k"),
+    test_mode: Optional[str] = Form(None),
 ):
     if not prompt.strip():
         return templates.TemplateResponse("index.html", {
@@ -176,7 +177,8 @@ async def generate_image(
                 log += f"Erreur pour image {i+1} : URL manquante.\n"
         if image_urls:
             log += "Succès : Images générées !\n"
-            _add_to_history(request, "image", image_urls, prompt)
+            if not test_mode:
+                _add_to_history(request, "image", image_urls, prompt)
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": image_urls, "video_url": None,
             "log": log, "prompt": prompt,
@@ -192,7 +194,7 @@ async def generate_image(
 
 
 @app.post("/generate_video", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def generate_video(request: Request, prompt: str = Form(...), image_file: UploadFile = File(None)):
+async def generate_video(request: Request, prompt: str = Form(...), image_file: UploadFile = File(None), test_mode: Optional[str] = Form(None)):
     if not prompt.strip() and not image_file:
         return templates.TemplateResponse("index.html", {
             "request": request, "image_urls": None, "video_url": None,
@@ -243,7 +245,8 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
             log += "Succès : Vidéo générée !\n"
-            _add_to_history(request, "video", [video_url], prompt)
+            if not test_mode:
+                _add_to_history(request, "video", [video_url], prompt)
         else:
             log += "Erreur : URL de vidéo manquante.\n"
         return templates.TemplateResponse("index.html", {
@@ -331,6 +334,12 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
         "log": log, "prompt": "",
         "history": request.session.get("history", [])
     })
+
+
+@app.post("/clear_history", dependencies=[Depends(require_auth)])
+async def clear_history(request: Request):
+    request.session.pop("history", None)
+    return RedirectResponse("/", status_code=303)
 
 
 @app.get("/download", dependencies=[Depends(require_auth)])
