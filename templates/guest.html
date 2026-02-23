@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mode Invité - MenguyGen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23e8a838' d='M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256 256-114.6 256-256S397.4 0 256 0zm-32 128c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c17.7 0 32 14.3 32 32s-14.3 32-32 32h-32v32c0 17.7-14.3 32-32 32s-32-14.3-32-32v-32h-32c-17.7 0-32-14.3-32-32s14.3-32 32-32h32v-32zm96 192c-53 0-96-43-96-96s43-96 96-96 96 43 96 96-43 96-96 96z'/%3E%3C/svg%3E">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo guest-logo">
+                <i class="fas fa-user"></i>
+            </div>
+            <h1 class="login-title">Mode Invité</h1>
+            <p class="login-subtitle">Entrez votre clé API xAI pour utiliser l'outil avec votre propre compte</p>
+
+            <div id="guest-error" class="error-msg" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i> <span id="guest-error-text"></span>
+            </div>
+
+            <form id="guest-form">
+                <input
+                    type="password"
+                    id="guest-api-key"
+                    class="login-input"
+                    placeholder="xai-..."
+                    required
+                    autofocus
+                >
+                <p class="guest-hint">
+                    <i class="fas fa-shield-halved"></i>
+                    Votre clé reste dans votre navigateur, elle n'est jamais stockée sur le serveur.
+                </p>
+                <button type="submit" class="btn-login btn-guest-submit">
+                    <i class="fas fa-arrow-right-to-bracket"></i> Entrer
+                </button>
+            </form>
+
+            <a href="/auth/login" class="guest-back">
+                <i class="fas fa-arrow-left"></i> Retour à la connexion
+            </a>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <a href="https://console.x.ai/" target="_blank" class="login-footer-link">Obtenir une clé API xAI</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('guest-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const key = document.getElementById('guest-api-key').value.trim();
+            const errorEl = document.getElementById('guest-error');
+            const errorText = document.getElementById('guest-error-text');
+
+            if (!key) {
+                errorEl.style.display = 'flex';
+                errorText.textContent = 'Veuillez entrer votre clé API.';
+                return;
+            }
+
+            // Stocker la clé dans le navigateur
+            localStorage.setItem('xai_guest_key', key);
+
+            // Activer la session invité côté serveur
+            try {
+                const resp = await fetch('/auth/guest', { method: 'POST' });
+                if (resp.redirected) {
+                    window.location.href = resp.url;
+                } else if (resp.ok) {
+                    window.location.href = '/';
+                } else {
+                    errorEl.style.display = 'flex';
+                    errorText.textContent = 'Erreur lors de la connexion.';
+                }
+            } catch (err) {
+                errorEl.style.display = 'flex';
+                errorText.textContent = 'Erreur réseau.';
+            }
+        });
+    </script>
+</body>
+</html>

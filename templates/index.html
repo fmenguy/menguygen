@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Studio - François MENGUY</title>
+    <title>MenguyGen - François MENGUY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23e8a838' d='M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256 256-114.6 256-256S397.4 0 256 0zm-32 128c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c17.7 0 32 14.3 32 32s-14.3 32-32 32h-32v32c0 17.7-14.3 32-32 32s-32-14.3-32-32v-32h-32c-17.7 0-32-14.3-32-32s14.3-32 32-32h32v-32zm96 192c-53 0-96-43-96-96s43-96 96-96 96 43 96 96-43 96-96 96z'/%3E%3C/svg%3E">
@@ -16,11 +16,16 @@
                 <div class="app-logo-icon">
                     <i class="fas fa-wand-magic-sparkles"></i>
                 </div>
-                <div class="app-logo-text">Image <span>Studio</span></div>
+                <div class="app-logo-text">Menguy<span>Gen</span></div>
             </a>
-            <a href="/auth/logout" class="btn-logout">
-                <i class="fas fa-sign-out-alt"></i> Déconnexion
-            </a>
+            <div class="header-actions">
+                {% if is_guest %}
+                <span class="badge-guest"><i class="fas fa-user"></i> Invité</span>
+                {% endif %}
+                <a href="/auth/logout" class="btn-logout" {% if is_guest %}onclick="localStorage.removeItem('xai_guest_key')"{% endif %}>
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
         </header>
 
         <!-- Body -->
@@ -299,9 +304,33 @@
             <div class="app-footer-text">
                 Créé par <a href="https://fmenguy.fr" target="_blank" class="app-footer-link">François MENGUY</a>
             </div>
+            <div class="app-footer-text mt-2">
+                <a href="https://aiprompt.fmenguy.fr/" target="_blank" class="app-footer-link"><i class="fas fa-pen-fancy"></i> AI Prompt</a> — Créez vos prompts avant de générer
+            </div>
         </footer>
     </div>
 
     <script src="/static/script.js"></script>
+    {% if is_guest %}
+    <script>
+        // Inject guest API key into all forms
+        (function() {
+            var key = localStorage.getItem('xai_guest_key');
+            if (!key) {
+                window.location.href = '/guest';
+                return;
+            }
+            document.querySelectorAll('form').forEach(function(form) {
+                if (!form.querySelector('input[name="api_key"]')) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'api_key';
+                    input.value = key;
+                    form.appendChild(input);
+                }
+            });
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>
