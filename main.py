@@ -144,7 +144,7 @@ async def generate_image(
     request: Request,
     prompt: str = Form(...),
     num_images: int = Form(1),
-    aspect_ratio: str = Form("1:1"),
+    aspect_ratio: str = Form("9:16"),
     resolution: str = Form("1k"),
 ):
     if not prompt.strip():
@@ -155,7 +155,7 @@ async def generate_image(
         })
 
     num_images = min(max(num_images, 1), 4)
-    aspect_ratio = aspect_ratio if aspect_ratio in ALLOWED_ASPECT_RATIOS else "1:1"
+    aspect_ratio = aspect_ratio if aspect_ratio in ALLOWED_ASPECT_RATIOS else "9:16"
     resolution = resolution if resolution in ALLOWED_RESOLUTIONS else "1k"
     log = f"Génération de {num_images} image(s) [{aspect_ratio}, {resolution}] en cours : \"{prompt}\" ...\n"
     try:
