@@ -52,9 +52,17 @@ async def require_auth(request: Request):
 class RedirectException(Exception):
     pass
 
+class GuestKeyMissing(Exception):
+    """Raised when a guest tries to generate without providing an API key."""
+    pass
+
 @app.exception_handler(RedirectException)
 async def redirect_to_login(request: Request, exc: RedirectException):
     return RedirectResponse("/auth/login")
+
+@app.exception_handler(GuestKeyMissing)
+async def redirect_to_guest(request: Request, exc: GuestKeyMissing):
+    return RedirectResponse("/guest")
 
 
 # --- Routes d'authentification ---
@@ -109,7 +117,9 @@ async def auth_guest(request: Request):
 
 def _get_client(request: Request, api_key: Optional[str] = None) -> Client:
     """Return a per-request Client for guests, or the global client for admins."""
-    if request.session.get("guest") and api_key:
+    if request.session.get("guest"):
+        if not api_key:
+            raise GuestKeyMissing()
         return Client(api_key=api_key)
     return client
 
