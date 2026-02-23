@@ -966,21 +966,17 @@ input[type="file"]::file-selector-button:hover {
 
 /* ═══ History Clear Button ═══ */
 
-.history-clear-form {
-    margin-left: auto;
-}
-
 .btn-clear-history {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
     background: none;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     color: var(--text-ghost);
     cursor: pointer;
+    font-family: 'Sora', sans-serif;
     font-size: 0.7rem;
     transition: all 0.2s;
 }
@@ -1015,20 +1011,46 @@ input[type="file"]::file-selector-button:hover {
     padding-top: 1.5rem;
 }
 
-.history-header {
+.btn-history-toggle {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
-    font-weight: 600;
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
     color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 1rem;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.history-header i {
+.btn-history-toggle:hover {
+    border-color: var(--border-medium);
+    color: var(--text-normal);
+}
+
+.btn-history-toggle .fa-clock-rotate-left {
     color: var(--accent-violet);
+}
+
+.history-chevron {
+    margin-left: auto;
+    font-size: 0.65rem;
+    transition: transform 0.25s;
+}
+
+.btn-history-toggle.open .history-chevron {
+    transform: rotate(180deg);
+}
+
+.history-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 0;
 }
 
 .history-card {
