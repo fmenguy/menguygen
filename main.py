@@ -176,10 +176,13 @@ async def generate_image(
     num_images = min(max(num_images, 1), 4)
     aspect_ratio = aspect_ratio if aspect_ratio in ALLOWED_ASPECT_RATIOS else "9:16"
     resolution = resolution if resolution in ALLOWED_RESOLUTIONS else "1k"
+    expanded_prompt = _expand_prompt(prompt)
     log = f"Génération de {num_images} image(s) [{aspect_ratio}, {resolution}] en cours : \"{prompt}\" ...\n"
+    if expanded_prompt != prompt:
+        log += f"Preset appliqué.\n"
     try:
         results = await asyncio.gather(
-            *[_generate_one_image(prompt, aspect_ratio, resolution) for _ in range(num_images)],
+            *[_generate_one_image(expanded_prompt, aspect_ratio, resolution) for _ in range(num_images)],
             return_exceptions=True
         )
         image_urls = []
@@ -220,10 +223,13 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
             "history": request.session.get("history", [])
         })
 
+    expanded_prompt = _expand_prompt(prompt)
     log = f"Génération vidéo en cours : \"{prompt}\""
     if image_file:
         log += " (depuis image uploadée)"
     log += " ...\n"
+    if expanded_prompt != prompt:
+        log += "Preset appliqué.\n"
 
     temp_path = None
     try:
