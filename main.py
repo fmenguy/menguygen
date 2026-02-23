@@ -187,6 +187,7 @@ def _tpl_ctx(request: Request, **kwargs):
         "prompt": "",
         "history": request.session.get("history", []),
         "is_guest": request.session.get("guest", False),
+        "test_mode": None,
     }
     ctx.update(kwargs)
     return ctx
@@ -243,7 +244,7 @@ async def generate_image(
             if not test_mode:
                 _add_to_history(request, "image", image_urls, prompt)
         return templates.TemplateResponse("index.html",
-            _tpl_ctx(request, image_urls=image_urls, log=log, prompt=prompt))
+            _tpl_ctx(request, image_urls=image_urls, log=log, prompt=prompt, test_mode=test_mode))
     except Exception as e:
         log += f"Erreur génération images : {e}\n"
         return templates.TemplateResponse("index.html",
@@ -316,7 +317,7 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
 
 
 @app.post("/animate_image", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def animate_image(request: Request, image_url: str = Form(...), prompt: Optional[str] = Form(None), api_key: Optional[str] = Form(None)):
+async def animate_image(request: Request, image_url: str = Form(...), prompt: Optional[str] = Form(None), test_mode: Optional[str] = Form(None), api_key: Optional[str] = Form(None)):
     xai_client = _get_client(request, api_key)
     animate_prompt = prompt.strip() if prompt else "Animer cette image avec mouvement fluide et naturel"
     log = f"Animation image→vidéo en cours : \"{animate_prompt}\" ...\n"
@@ -329,7 +330,8 @@ async def animate_image(request: Request, image_url: str = Form(...), prompt: Op
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
             log += "Succès : Animation terminée !\n"
-            _add_to_history(request, "video", [video_url], animate_prompt)
+            if not test_mode:
+                _add_to_history(request, "video", [video_url], animate_prompt)
         else:
             log += "Erreur : URL de vidéo manquante.\n"
         return templates.TemplateResponse("index.html",
@@ -341,7 +343,7 @@ async def animate_image(request: Request, image_url: str = Form(...), prompt: Op
 
 
 @app.post("/refine_image", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def refine_image(request: Request, image_url: str = Form(...), refine_prompt: str = Form(...), api_key: Optional[str] = Form(None)):
+async def refine_image(request: Request, image_url: str = Form(...), refine_prompt: str = Form(...), test_mode: Optional[str] = Form(None), api_key: Optional[str] = Form(None)):
     if not refine_prompt.strip():
         return templates.TemplateResponse("index.html",
             _tpl_ctx(request, image_urls=[image_url], log="Erreur : Prompt de refinement vide !"))
@@ -358,7 +360,8 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
         refined_image_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if refined_image_url:
             log += "Succès : Image raffinée !\n"
-            _add_to_history(request, "image", [refined_image_url], refine_prompt)
+            if not test_mode:
+                _add_to_history(request, "image", [refined_image_url], refine_prompt)
             return templates.TemplateResponse("index.html",
                 _tpl_ctx(request, image_urls=[refined_image_url], log=log, prompt=refine_prompt))
         else:

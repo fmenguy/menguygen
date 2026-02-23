@@ -189,6 +189,7 @@
 
                                 <form method="POST" action="/refine_image" class="inline-form">
                                     <input type="hidden" name="image_url" value="{{ url }}">
+                                    {% if test_mode %}<input type="hidden" name="test_mode" value="1">{% endif %}
                                     <input
                                         type="text"
                                         name="refine_prompt"
@@ -202,6 +203,7 @@
 
                                 <form method="POST" action="/animate_image" class="inline-form">
                                     <input type="hidden" name="image_url" value="{{ url }}">
+                                    {% if test_mode %}<input type="hidden" name="test_mode" value="1">{% endif %}
                                     <input
                                         type="text"
                                         name="prompt"
