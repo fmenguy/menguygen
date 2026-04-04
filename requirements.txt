@@ -1,7 +1,8 @@
 fastapi>=0.115
+starlette<1.0
 python-dotenv>=1.0
 uvicorn[standard]>=0.34
-jinja2>=3.1
+jinja2>=3.1,<3.1.5
 requests>=2.32
 xai_sdk
 python-multipart>=0.0.6
