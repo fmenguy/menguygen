@@ -83,6 +83,21 @@
                             </label>
                         </div>
 
+                        <!-- Model Quality -->
+                        <label class="form-label mt-4">Modèle</label>
+                        <div class="radio-group mb-4">
+                            <label class="btn-radio btn-radio--model" title="0.02 $ / image">
+                                <input type="radio" name="model_quality" value="standard" checked>
+                                <span class="model-label">Standard</span>
+                                <span class="model-price">0.02$</span>
+                            </label>
+                            <label class="btn-radio btn-radio--model" title="0.07 $ / image — meilleure qualité, plus lent">
+                                <input type="radio" name="model_quality" value="pro">
+                                <span class="model-label">Pro</span>
+                                <span class="model-price">0.07$</span>
+                            </label>
+                        </div>
+
                         <!-- Resolution & Count row -->
                         <div class="form-row mb-4">
                             <div class="form-row-col">
@@ -98,21 +113,30 @@
                             </div>
                             <div class="form-row-col">
                                 <label class="form-label">Images</label>
-                                <div class="radio-group">
+                                <div class="radio-group radio-group--wrap">
                                     <label class="btn-radio">
                                         <input type="radio" name="num_images" value="1"> 1
                                     </label>
                                     <label class="btn-radio">
-                                        <input type="radio" name="num_images" value="2"> 2
-                                    </label>
-                                    <label class="btn-radio">
-                                        <input type="radio" name="num_images" value="3"> 3
-                                    </label>
-                                    <label class="btn-radio">
                                         <input type="radio" name="num_images" value="4" checked> 4
+                                    </label>
+                                    <label class="btn-radio">
+                                        <input type="radio" name="num_images" value="6"> 6
+                                    </label>
+                                    <label class="btn-radio">
+                                        <input type="radio" name="num_images" value="8"> 8
+                                    </label>
+                                    <label class="btn-radio btn-radio--infinite" title="Génération infinie — génère des images en continu">
+                                        <input type="radio" name="num_images" value="infinite"> <i class="fas fa-infinity"></i>
                                     </label>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Cost estimator -->
+                        <div class="cost-estimator mb-4" id="cost-estimator">
+                            <i class="fas fa-coins"></i>
+                            <span id="cost-text">Coût estimé : ~0.08$</span>
                         </div>
 
                         <div class="form-footer mt-4">
@@ -169,88 +193,111 @@
 
             <!-- Right Panel: Results -->
             <div class="panel-results">
-                {% if image_urls %}
-                <div class="results-section">
-                    <div class="results-header">
-                        <i class="fas fa-image"></i> Images Générées
-                    </div>
-                    <div class="image-grid">
-                        {% for url in image_urls %}
-                        <div class="image-card">
-                            <img src="{{ url }}" alt="Image générée">
-                            <div class="image-actions">
-                                <a href="{{ url }}" target="_blank" class="image-link">
-                                    <i class="fas fa-external-link-alt"></i> Ouvrir en grand
-                                </a>
-
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="downloadMedia('{{ url }}')">
-                                    <i class="fas fa-download"></i> Télécharger
-                                </button>
-
-                                <form method="POST" action="/refine_image" class="inline-form">
-                                    <input type="hidden" name="image_url" value="{{ url }}">
-                                    {% if test_mode %}<input type="hidden" name="test_mode" value="1">{% endif %}
-                                    <input
-                                        type="text"
-                                        name="refine_prompt"
-                                        placeholder="Modifier l'image..."
-                                        required
-                                    >
-                                    <button type="submit" class="btn btn-action btn-sm">
-                                        <i class="fas fa-edit"></i> Modifier
-                                    </button>
-                                </form>
-
-                                <form method="POST" action="/animate_image" class="inline-form">
-                                    <input type="hidden" name="image_url" value="{{ url }}">
-                                    {% if test_mode %}<input type="hidden" name="test_mode" value="1">{% endif %}
-                                    <input
-                                        type="text"
-                                        name="prompt"
-                                        placeholder="Décrire le mouvement..."
-                                        value="{{ prompt }}"
-                                    >
-                                    <button type="submit" class="btn btn-action btn-sm">
-                                        <i class="fas fa-play-circle"></i> Animer
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+                <!-- Tabs: Résultats / Favoris -->
+                <div class="results-tabs">
+                    <button class="results-tab active" data-results-tab="generated" onclick="switchResultsTab('generated')">
+                        <i class="fas fa-images"></i> Résultats
+                    </button>
+                    <button class="results-tab" data-results-tab="favorites" onclick="switchResultsTab('favorites')">
+                        <i class="fas fa-heart"></i> Favoris <span id="fav-count" class="fav-badge"></span>
+                    </button>
                 </div>
-                {% endif %}
 
-                {% if video_url %}
-                <div class="results-section">
-                    <div class="results-header">
-                        <i class="fas fa-video"></i> Vidéo Générée
+                <!-- Generated Images Tab -->
+                <div id="tab-generated" class="results-tab-content">
+                    {% if video_url %}
+                    <div class="results-section">
+                        <div class="results-header">
+                            <i class="fas fa-video"></i> Vidéo Générée
+                        </div>
+                        <video controls class="video-player">
+                            <source src="{{ video_url }}" type="video/mp4">
+                            Votre navigateur ne supporte pas la vidéo.
+                        </video>
+                        <div class="video-actions">
+                            <a href="{{ video_url }}" target="_blank" class="image-link">
+                                <i class="fas fa-external-link-alt"></i> Ouvrir en grand
+                            </a>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="downloadMedia('{{ video_url }}')">
+                                <i class="fas fa-download"></i> Télécharger
+                            </button>
+                        </div>
                     </div>
-                    <video controls class="video-player">
-                        <source src="{{ video_url }}" type="video/mp4">
-                        Votre navigateur ne supporte pas la vidéo.
-                    </video>
-                    <div class="video-actions">
-                        <a href="{{ video_url }}" target="_blank" class="image-link">
-                            <i class="fas fa-external-link-alt"></i> Ouvrir en grand
-                        </a>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="downloadMedia('{{ video_url }}')">
-                            <i class="fas fa-download"></i> Télécharger
+                    {% endif %}
+
+                    <div id="image-results-grid" class="image-grid">
+                        {% if image_urls %}
+                            {% for url in image_urls %}
+                            <div class="image-card" data-url="{{ url }}">
+                                <div class="image-card-wrapper">
+                                    <img src="{{ url }}" alt="Image générée" loading="lazy">
+                                    <button type="button" class="btn-fav" onclick="toggleFavorite(this, '{{ url }}')" title="Ajouter aux favoris">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                </div>
+                                <div class="image-actions">
+                                    <div class="image-actions-row">
+                                        <a href="{{ url }}" target="_blank" class="image-link">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                        <button type="button" class="btn-icon" onclick="downloadMedia('{{ url }}')" title="Télécharger">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </div>
+                                    <form method="POST" action="/refine_image" class="inline-form">
+                                        <input type="hidden" name="image_url" value="{{ url }}">
+                                        {% if test_mode %}<input type="hidden" name="test_mode" value="1">{% endif %}
+                                        <input type="text" name="refine_prompt" placeholder="Modifier..." required>
+                                        <button type="submit" class="btn btn-action btn-sm"><i class="fas fa-edit"></i></button>
+                                    </form>
+                                    <form method="POST" action="/animate_image" class="inline-form">
+                                        <input type="hidden" name="image_url" value="{{ url }}">
+                                        {% if test_mode %}<input type="hidden" name="test_mode" value="1">{% endif %}
+                                        <input type="text" name="prompt" placeholder="Mouvement..." value="{{ prompt }}">
+                                        <button type="submit" class="btn btn-action btn-sm"><i class="fas fa-play-circle"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Génération auto : loader + contrôles -->
+                    <div id="scroll-loader" class="scroll-loader hidden">
+                        <div class="loader-spinner"></div>
+                        <span id="loader-text">Génération en cours...</span>
+                    </div>
+                    <div id="auto-gen-controls" class="auto-gen-controls hidden">
+                        <button type="button" id="btn-auto-gen" class="btn btn-auto-gen" onclick="toggleAutoGen()">
+                            <i class="fas fa-play"></i> <span>Lancer la génération auto</span>
+                        </button>
+                        <button type="button" id="btn-load-once" class="btn btn-secondary btn-sm" onclick="loadMoreImages()">
+                            <i class="fas fa-plus"></i> +1 batch
                         </button>
                     </div>
-                </div>
-                {% endif %}
 
-                {% if not image_urls and not video_url %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-wand-magic-sparkles"></i>
+                    {% if not image_urls and not video_url %}
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div class="empty-state-text">
+                            Décrivez votre vision et laissez<br>la magie opérer.
+                        </div>
                     </div>
-                    <div class="empty-state-text">
-                        Décrivez votre vision et laissez<br>la magie opérer.
+                    {% endif %}
+                </div>
+
+                <!-- Favorites Tab -->
+                <div id="tab-favorites" class="results-tab-content hidden">
+                    <div id="favorites-grid" class="image-grid"></div>
+                    <div id="favorites-empty" class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-heart"></i></div>
+                        <div class="empty-state-text">
+                            Aucun favori pour le moment.<br>Cliquez sur le coeur d'une image pour l'ajouter.
+                        </div>
                     </div>
                 </div>
-                {% endif %}
 
                 <!-- Session History -->
                 {% if history %}

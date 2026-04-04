@@ -1309,3 +1309,301 @@ input[type="file"]::file-selector-button:hover {
 .history-thumb--video:hover i {
     opacity: 1;
 }
+
+/* ═══ Model Quality Selector ═══ */
+
+.btn-radio--model {
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.6rem 1.2rem;
+    flex: 1;
+    text-align: center;
+}
+
+.btn-radio--model .model-label {
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.btn-radio--model .model-price {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.7;
+}
+
+.btn-radio--model:has(input:checked) .model-price {
+    opacity: 1;
+}
+
+.radio-group--wrap {
+    flex-wrap: wrap;
+}
+
+/* ═══ Cost Estimator ═══ */
+
+.cost-estimator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    background: rgba(232, 168, 56, 0.06);
+    border: 1px solid rgba(232, 168, 56, 0.15);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+}
+
+.cost-estimator i {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
+/* ═══ Results Tabs ═══ */
+
+.results-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.results-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    background: var(--bg-surface);
+    color: var(--text-dim);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.results-tab:hover {
+    color: var(--text-normal);
+    background: var(--bg-elevated);
+}
+
+.results-tab.active {
+    background: var(--bg-elevated);
+    color: var(--text-bright);
+    border-color: var(--border-medium);
+}
+
+.results-tab.active[data-results-tab="generated"] {
+    box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.results-tab.active[data-results-tab="favorites"] {
+    box-shadow: inset 0 2px 0 #e85050;
+}
+
+.results-tab-content.hidden {
+    display: none;
+}
+
+.fav-badge {
+    font-size: 0.65rem;
+    background: rgba(232, 80, 80, 0.2);
+    color: #e85050;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 1.2rem;
+    text-align: center;
+}
+
+.fav-badge.hidden {
+    display: none;
+}
+
+/* ═══ Favorite Button (heart overlay) ═══ */
+
+.image-card-wrapper {
+    position: relative;
+}
+
+.btn-fav {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    border: none;
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    opacity: 0;
+    z-index: 2;
+}
+
+.image-card:hover .btn-fav,
+.btn-fav.is-fav {
+    opacity: 1;
+}
+
+.btn-fav:hover {
+    transform: scale(1.15);
+    color: #e85050;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.btn-fav.is-fav {
+    color: #e85050;
+}
+
+.btn-fav.is-fav:hover {
+    color: #ff6b6b;
+}
+
+/* ═══ Image Actions Compact ═══ */
+
+.image-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+}
+
+.btn-icon:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+}
+
+/* ═══ Infinite mode radio ═══ */
+
+.btn-radio--infinite {
+    letter-spacing: 0;
+}
+
+.btn-radio--infinite i {
+    font-size: 0.9rem;
+}
+
+/* ═══ Auto-generation controls ═══ */
+
+.auto-gen-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.auto-gen-controls.hidden {
+    display: none;
+}
+
+.btn-auto-gen {
+    flex: 1;
+    background: linear-gradient(135deg, var(--accent-mint), #3a9e7c);
+    color: var(--bg-void);
+}
+
+.btn-auto-gen:hover {
+    box-shadow: 0 4px 24px rgba(94, 198, 160, 0.3);
+}
+
+.btn-auto-gen.is-active {
+    background: linear-gradient(135deg, #e85050, #c03030);
+    animation: pulse-stop 1.5s ease infinite;
+}
+
+.btn-auto-gen.is-active:hover {
+    box-shadow: 0 4px 24px rgba(232, 80, 80, 0.3);
+}
+
+@keyframes pulse-stop {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+}
+
+.scroll-loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.scroll-loader.hidden {
+    display: none;
+}
+
+.loader-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-medium);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ═══ Fade-in for dynamically added cards ═══ */
+
+.image-card.fade-in {
+    animation: cardFadeIn 0.4s ease both;
+}
+
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ═══ Favorites Grid Adjustments ═══ */
+
+#favorites-grid .image-card {
+    animation: cardFadeIn 0.3s ease both;
+}
+
+/* ═══ Responsive: wider grid for more images ═══ */
+
+@media (min-width: 800px) {
+    .panel-results .image-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1100px) {
+    .app-container {
+        max-width: 1400px;
+    }
+
+    .panel-results .image-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
