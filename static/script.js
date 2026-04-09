@@ -20,6 +20,29 @@ function downloadMedia(url) {
     document.body.removeChild(a);
 }
 
+// ═══ Résolution : désactiver 2K en mode Pro (déjà 4K natif) ═══
+function updateResolutionForModel() {
+    const model = document.querySelector('input[name="model_quality"]:checked');
+    const label2k = document.querySelector('input[name="resolution"][value="2k"]')?.closest('label');
+    const input2k = document.querySelector('input[name="resolution"][value="2k"]');
+    const input1k = document.querySelector('input[name="resolution"][value="1k"]');
+    if (!model || !label2k || !input2k) return;
+    if (model.value === 'pro') {
+        label2k.style.opacity = '0.35';
+        label2k.style.pointerEvents = 'none';
+        label2k.title = 'Non disponible en mode Pro (déjà 4K natif)';
+        if (input2k.checked) {
+            input2k.checked = false;
+            input1k.checked = true;
+            input1k.dispatchEvent(new Event('change'));
+        }
+    } else {
+        label2k.style.opacity = '';
+        label2k.style.pointerEvents = '';
+        label2k.title = '';
+    }
+}
+
 // ═══ Cost estimator ═══
 function updateCostEstimate() {
     const model = document.querySelector('input[name="model_quality"]:checked');
@@ -39,7 +62,11 @@ function updateCostEstimate() {
 document.querySelectorAll('input[name="model_quality"], input[name="num_images"]').forEach(input => {
     input.addEventListener('change', updateCostEstimate);
 });
+document.querySelectorAll('input[name="model_quality"]').forEach(input => {
+    input.addEventListener('change', updateResolutionForModel);
+});
 updateCostEstimate();
+updateResolutionForModel();
 
 // ═══ Results tabs (Résultats / Favoris) ═══
 function switchResultsTab(tab) {
