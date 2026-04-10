@@ -275,6 +275,7 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
 
     temp_path = None
     try:
+        loop = asyncio.get_running_loop()
         if image_file:
             if image_file.content_type not in ALLOWED_MIME_TYPES:
                 return _tpl(request, "index.html", log=f"Erreur : Type de fichier non autorisé ({image_file.content_type}). Formats acceptés : PNG, JPEG, WebP.", prompt=prompt)
@@ -289,16 +290,16 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
                 f.write(content)
 
             image_url = f"file://{temp_path}"
-            response = xai_client.video.generate(
+            response = await loop.run_in_executor(None, lambda: xai_client.video.generate(
                 model="grok-imagine-video",
                 prompt=expanded_prompt,
                 image_url=image_url
-            )
+            ))
         else:
-            response = xai_client.video.generate(
+            response = await loop.run_in_executor(None, lambda: xai_client.video.generate(
                 model="grok-imagine-video",
                 prompt=expanded_prompt
-            )
+            ))
 
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
@@ -325,11 +326,12 @@ async def animate_image(request: Request, image_url: str = Form(...), prompt: Op
     animate_prompt = prompt.strip() if prompt else "Animer cette image avec mouvement fluide et naturel"
     log = f"Animation image→vidéo en cours : \"{animate_prompt}\" ...\n"
     try:
-        response = xai_client.video.generate(
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, lambda: xai_client.video.generate(
             model="grok-imagine-video",
             prompt=animate_prompt,
             image_url=image_url
-        )
+        ))
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
             log += "Succès : Animation terminée !\n"
@@ -351,12 +353,13 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
     xai_client = _get_client(request, api_key)
     log = f"Refinement image en cours : \"{refine_prompt}\" ...\n"
     try:
-        response = xai_client.image.sample(
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, lambda: xai_client.image.sample(
             model="grok-imagine-image",
             prompt=refine_prompt,
             image_url=image_url,
             image_format="url"
-        )
+        ))
         refined_image_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if refined_image_url:
             log += "Succès : Image raffinée !\n"
@@ -426,7 +429,8 @@ async def api_generate_images(request: Request):
 async def download_media(url: str = Query(...)):
     """Proxy de téléchargement pour contourner les CORS"""
     try:
-        response = requests.get(url, stream=True, timeout=30)
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, lambda: requests.get(url, stream=True, timeout=30))
         response.raise_for_status()
 
         # Déterminer le type de contenu et l'extension
