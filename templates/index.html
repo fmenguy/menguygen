@@ -71,6 +71,16 @@
                                 <svg viewBox="0 0 21 28" width="17" height="22"><rect x="1" y="1" width="19" height="26" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>3:4</span>
                             </label>
+                            <label class="btn-aspect" title="Photo paysage 3:2">
+                                <input type="radio" name="aspect_ratio" value="3:2">
+                                <svg viewBox="0 0 30 20" width="24" height="16"><rect x="1" y="1" width="28" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                <span>3:2</span>
+                            </label>
+                            <label class="btn-aspect" title="Photo portrait 2:3">
+                                <input type="radio" name="aspect_ratio" value="2:3">
+                                <svg viewBox="0 0 20 30" width="16" height="24"><rect x="1" y="1" width="18" height="28" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                <span>2:3</span>
+                            </label>
                             <label class="btn-aspect" title="Paysage 16:9">
                                 <input type="radio" name="aspect_ratio" value="16:9">
                                 <svg viewBox="0 0 32 18" width="26" height="15"><rect x="1" y="1" width="30" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
@@ -81,21 +91,35 @@
                                 <svg viewBox="0 0 18 32" width="15" height="26"><rect x="1" y="1" width="16" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                                 <span>9:16</span>
                             </label>
+                            <label class="btn-aspect" title="Panorama 2:1">
+                                <input type="radio" name="aspect_ratio" value="2:1">
+                                <svg viewBox="0 0 34 17" width="28" height="14"><rect x="1" y="1" width="32" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                <span>2:1</span>
+                            </label>
+                            <label class="btn-aspect" title="Panneau vertical 1:2">
+                                <input type="radio" name="aspect_ratio" value="1:2">
+                                <svg viewBox="0 0 17 34" width="14" height="28"><rect x="1" y="1" width="15" height="32" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                <span>1:2</span>
+                            </label>
+                            <label class="btn-aspect" title="Auto — le modèle choisit le meilleur format">
+                                <input type="radio" name="aspect_ratio" value="auto">
+                                <svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="2" width="20" height="20" rx="4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 2"/></svg>
+                                <span>Auto</span>
+                            </label>
                         </div>
 
                         <!-- Model Quality -->
                         <label class="form-label mt-4">Modèle</label>
                         <div class="radio-group mb-4">
-                            <label class="btn-radio btn-radio--model" title="0.02 $ / image">
-                                <input type="radio" name="model_quality" value="standard" checked>
-                                <span class="model-label">Standard</span>
-                                <span class="model-price">0.02$</span>
+                            {% for key, m in model_config.items() %}
+                            <label class="btn-radio btn-radio--model{% if m.archived %} btn-radio--archived{% endif %}"
+                                   title="${{ '%.2f'|format(m.price) }} / image — {{ m.rpm }} req/min{% if m.archived %} · Archivé{% endif %}">
+                                <input type="radio" name="model_quality" value="{{ key }}" {% if loop.first %}checked{% endif %}>
+                                <span class="model-label">{{ m.label }}{% if m.archived %} <span class="badge-archive">Archive</span>{% endif %}</span>
+                                <span class="model-price">${{ '%.2f'|format(m.price) }}{% if key == 'pro' %} · 4K{% endif %}</span>
+                                <span class="model-rpm">{{ m.rpm }} rpm</span>
                             </label>
-                            <label class="btn-radio btn-radio--model" title="0.07 $ / image — meilleure qualité 4K natif, plus lent">
-                                <input type="radio" name="model_quality" value="pro">
-                                <span class="model-label">Pro</span>
-                                <span class="model-price">0.07$ · 4K</span>
-                            </label>
+                            {% endfor %}
                         </div>
 
                         <!-- Resolution & Count row -->
@@ -169,6 +193,34 @@
                             name="image_file"
                             accept="image/png,image/jpeg,image/webp"
                         >
+
+                        <!-- Durée -->
+                        <label class="form-label mt-4">Durée</label>
+                        <div class="duration-row mb-4">
+                            <input type="range" name="video_duration" id="video_duration"
+                                   min="{{ video_config.min_duration }}" max="{{ video_config.max_duration }}"
+                                   value="5" step="1"
+                                   oninput="updateVideoCostEstimate()">
+                            <span id="duration-val" class="duration-display">5s</span>
+                        </div>
+
+                        <!-- Résolution vidéo -->
+                        <label class="form-label">Résolution</label>
+                        <div class="radio-group mb-4">
+                            {% for res in video_config.resolutions %}
+                            <label class="btn-radio" title="{% if res == '480p' %}Plus rapide{% else %}Meilleure qualité{% endif %}">
+                                <input type="radio" name="video_resolution" value="{{ res }}"
+                                       {% if loop.first %}checked{% endif %}
+                                       onchange="updateVideoCostEstimate()"> {{ res }}
+                            </label>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Cost estimator vidéo -->
+                        <div class="cost-estimator mb-4" id="cost-estimator-video">
+                            <i class="fas fa-coins"></i>
+                            <span id="cost-text-video">Coût estimé : ~0.25$ (5s × $0.05/s)</span>
+                        </div>
 
                         <div class="form-footer mt-4">
                             <button type="submit" class="btn btn-generate">

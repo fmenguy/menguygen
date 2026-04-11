@@ -43,20 +43,35 @@ function updateResolutionForModel() {
     }
 }
 
-// ═══ Cost estimator ═══
+// ═══ Cost estimator — Images ═══
+const MODEL_PRICES = { standard: 0.02, pro: 0.07 };
+const VIDEO_PRICE_PER_SEC = 0.05;
+
 function updateCostEstimate() {
     const model = document.querySelector('input[name="model_quality"]:checked');
     const num = document.querySelector('input[name="num_images"]:checked');
     if (!model || !num) return;
-    const price = model.value === 'pro' ? 0.07 : 0.02;
+    const price = MODEL_PRICES[model.value] ?? 0.02;
     const el = document.getElementById('cost-text');
+    if (!el) return;
     if (num.value === 'infinite') {
         el.textContent = `Coût par batch : ~${(price * 4).toFixed(2)}$ (4 images/batch)`;
     } else {
         const count = parseInt(num.value) || 4;
-        const total = (price * count).toFixed(2);
-        el.textContent = `Coût estimé : ~${total}$`;
+        el.textContent = `Coût estimé : ~${(price * count).toFixed(2)}$`;
     }
+}
+
+// ═══ Cost estimator — Vidéo ═══
+function updateVideoCostEstimate() {
+    const slider = document.getElementById('video_duration');
+    const el = document.getElementById('cost-text-video');
+    const val = document.getElementById('duration-val');
+    if (!slider || !el) return;
+    const duration = parseInt(slider.value) || 5;
+    if (val) val.textContent = `${duration}s`;
+    const cost = (duration * VIDEO_PRICE_PER_SEC).toFixed(2);
+    el.textContent = `Coût estimé : ~${cost}$ (${duration}s × $0.05/s)`;
 }
 
 document.querySelectorAll('input[name="model_quality"], input[name="num_images"]').forEach(input => {
@@ -65,8 +80,10 @@ document.querySelectorAll('input[name="model_quality"], input[name="num_images"]
 document.querySelectorAll('input[name="model_quality"]').forEach(input => {
     input.addEventListener('change', updateResolutionForModel);
 });
+document.getElementById('video_duration')?.addEventListener('input', updateVideoCostEstimate);
 updateCostEstimate();
 updateResolutionForModel();
+updateVideoCostEstimate();
 
 // ═══ Results tabs (Résultats / Favoris) ═══
 function switchResultsTab(tab) {
