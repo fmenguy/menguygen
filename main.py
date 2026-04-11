@@ -130,12 +130,40 @@ def _download_media(url: str, filepath: str):
         f.write(response.content)
 
 
-ALLOWED_ASPECT_RATIOS = {"1:1", "4:3", "3:4", "16:9", "9:16"}
-ALLOWED_RESOLUTIONS = {"1k", "2k"}
-ALLOWED_MODELS = {
-    "standard": "grok-imagine-image",       # 0.02 $/image
-    "pro": "grok-imagine-image-pro",         # 0.07 $/image
+ALLOWED_ASPECT_RATIOS = {
+    "1:1", "4:3", "3:4", "16:9", "9:16",
+    "3:2", "2:3", "2:1", "1:2",
+    "19.5:9", "9:19.5", "20:9", "9:20", "auto"
 }
+ALLOWED_RESOLUTIONS = {"1k", "2k"}
+
+MODEL_CONFIG = {
+    "standard": {
+        "model_id": "grok-imagine-image",
+        "label": "Standard",
+        "price": 0.02,
+        "rpm": 300,
+        "archived": False,
+    },
+    "pro": {
+        "model_id": "grok-imagine-image-pro",
+        "label": "Pro",
+        "price": 0.07,
+        "rpm": 30,
+        "archived": False,
+    },
+}
+ALLOWED_MODELS = {k: v["model_id"] for k, v in MODEL_CONFIG.items()}
+
+VIDEO_CONFIG = {
+    "model_id": "grok-imagine-video",
+    "price_per_second": 0.05,
+    "rpm": 60,
+    "min_duration": 1,
+    "max_duration": 15,
+    "resolutions": ["480p", "720p"],
+}
+ALLOWED_VIDEO_RESOLUTIONS = {"480p", "720p"}
 
 
 def _add_to_history(request: Request, entry_type: str, urls: list, prompt: str):
@@ -193,6 +221,8 @@ def _tpl_ctx(request: Request, **kwargs):
         "history": request.session.get("history", []),
         "is_guest": request.session.get("guest", False),
         "test_mode": None,
+        "model_config": MODEL_CONFIG,
+        "video_config": VIDEO_CONFIG,
     }
     ctx.update(kwargs)
     return ctx
@@ -250,7 +280,8 @@ async def generate_image(
             else:
                 log += f"Erreur pour image {i+1} : URL manquante.\n"
         if image_urls:
-            log += "Succès : Images générées !\n"
+            cost = len(image_urls) * MODEL_CONFIG[model_quality]["price"]
+            log += f"Succès : Images générées ! Coût : ~${cost:.2f} ({len(image_urls)} × ${MODEL_CONFIG[model_quality]['price']})\n"
             if not test_mode:
                 _add_to_history(request, "image", image_urls, prompt)
         return _tpl(request, "index.html", image_urls=image_urls, log=log, prompt=prompt, test_mode=test_mode)
@@ -260,16 +291,27 @@ async def generate_image(
 
 
 @app.post("/generate_video", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def generate_video(request: Request, prompt: str = Form(...), image_file: UploadFile = File(None), test_mode: Optional[str] = Form(None), api_key: Optional[str] = Form(None)):
+async def generate_video(
+    request: Request,
+    prompt: str = Form(...),
+    image_file: UploadFile = File(None),
+    video_resolution: str = Form("480p"),
+    video_duration: int = Form(5),
+    test_mode: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
+):
     if not prompt.strip() and not image_file:
         return _tpl(request, "index.html", log="Erreur : Prompt vide et aucune image uploadée pour vidéo !")
+
+    video_resolution = video_resolution if video_resolution in ALLOWED_VIDEO_RESOLUTIONS else "480p"
+    video_duration = max(VIDEO_CONFIG["min_duration"], min(VIDEO_CONFIG["max_duration"], video_duration))
 
     xai_client = _get_client(request, api_key)
     expanded_prompt = _expand_prompt(prompt)
     log = f"Génération vidéo en cours : \"{prompt}\""
     if image_file:
         log += " (depuis image uploadée)"
-    log += " ...\n"
+    log += f" [{video_resolution}, {video_duration}s] ...\n"
     if expanded_prompt != prompt:
         log += "Preset appliqué.\n"
 
@@ -293,17 +335,22 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
             response = await loop.run_in_executor(None, lambda: xai_client.video.generate(
                 model="grok-imagine-video",
                 prompt=expanded_prompt,
-                image_url=image_url
+                image_url=image_url,
+                resolution=video_resolution,
+                duration=video_duration,
             ))
         else:
             response = await loop.run_in_executor(None, lambda: xai_client.video.generate(
                 model="grok-imagine-video",
-                prompt=expanded_prompt
+                prompt=expanded_prompt,
+                resolution=video_resolution,
+                duration=video_duration,
             ))
 
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
-            log += "Succès : Vidéo générée !\n"
+            cost = video_duration * VIDEO_CONFIG["price_per_second"]
+            log += f"Succès : Vidéo générée ! Coût : ~${cost:.2f} ({video_duration}s × $0.05/s)\n"
             if not test_mode:
                 _add_to_history(request, "video", [video_url], prompt)
         else:
@@ -321,20 +368,30 @@ async def generate_video(request: Request, prompt: str = Form(...), image_file: 
 
 
 @app.post("/animate_image", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
-async def animate_image(request: Request, image_url: str = Form(...), prompt: Optional[str] = Form(None), test_mode: Optional[str] = Form(None), api_key: Optional[str] = Form(None)):
+async def animate_image(
+    request: Request,
+    image_url: str = Form(...),
+    prompt: Optional[str] = Form(None),
+    video_duration: int = Form(5),
+    test_mode: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
+):
     xai_client = _get_client(request, api_key)
+    video_duration = max(VIDEO_CONFIG["min_duration"], min(VIDEO_CONFIG["max_duration"], video_duration))
     animate_prompt = prompt.strip() if prompt else "Animer cette image avec mouvement fluide et naturel"
-    log = f"Animation image→vidéo en cours : \"{animate_prompt}\" ...\n"
+    log = f"Animation image→vidéo en cours : \"{animate_prompt}\" [{video_duration}s] ...\n"
     try:
         loop = asyncio.get_running_loop()
         response = await loop.run_in_executor(None, lambda: xai_client.video.generate(
             model="grok-imagine-video",
             prompt=animate_prompt,
-            image_url=image_url
+            image_url=image_url,
+            duration=video_duration,
         ))
         video_url = getattr(response, 'url', None) or (response.get('url') if isinstance(response, dict) else None)
         if video_url:
-            log += "Succès : Animation terminée !\n"
+            cost = video_duration * VIDEO_CONFIG["price_per_second"]
+            log += f"Succès : Animation terminée ! Coût : ~${cost:.2f} ({video_duration}s × $0.05/s)\n"
             if not test_mode:
                 _add_to_history(request, "video", [video_url], animate_prompt)
         else:
