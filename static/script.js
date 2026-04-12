@@ -81,9 +81,6 @@ document.querySelectorAll('input[name="model_quality"]').forEach(input => {
     input.addEventListener('change', updateResolutionForModel);
 });
 document.getElementById('video_duration')?.addEventListener('input', updateVideoCostEstimate);
-updateCostEstimate();
-updateResolutionForModel();
-updateVideoCostEstimate();
 
 // ═══ Results tabs (Résultats / Favoris) ═══
 function switchResultsTab(tab) {
@@ -362,8 +359,79 @@ function setupFormIntercept() {
     });
 }
 
+// ═══ Settings persistence (localStorage) ═══
+const SETTINGS_KEY = 'menguygen_settings';
+
+function loadSettings() {
+    try {
+        return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    } catch { return {}; }
+}
+
+function saveSettings(patch) {
+    const s = { ...loadSettings(), ...patch };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+
+function restoreSettings() {
+    const s = loadSettings();
+
+    // Image settings
+    if (s.aspect_ratio) {
+        const r = document.querySelector(`input[name="aspect_ratio"][value="${s.aspect_ratio}"]`);
+        if (r) r.checked = true;
+    }
+    if (s.resolution) {
+        const r = document.querySelector(`input[name="resolution"][value="${s.resolution}"]`);
+        if (r) r.checked = true;
+    }
+    if (s.model_quality) {
+        const r = document.querySelector(`input[name="model_quality"][value="${s.model_quality}"]`);
+        if (r) r.checked = true;
+    }
+    if (s.num_images) {
+        const r = document.querySelector(`input[name="num_images"][value="${s.num_images}"]`);
+        if (r) r.checked = true;
+    }
+
+    // Video settings
+    if (s.video_duration) {
+        const slider = document.getElementById('video_duration');
+        if (slider) {
+            slider.value = s.video_duration;
+        }
+    }
+    if (s.video_resolution) {
+        const r = document.querySelector(`input[name="video_resolution"][value="${s.video_resolution}"]`);
+        if (r) r.checked = true;
+    }
+}
+
+function setupSettingsPersistence() {
+    document.querySelectorAll('input[name="aspect_ratio"]').forEach(el =>
+        el.addEventListener('change', () => saveSettings({ aspect_ratio: el.value })));
+    document.querySelectorAll('input[name="resolution"]').forEach(el =>
+        el.addEventListener('change', () => saveSettings({ resolution: el.value })));
+    document.querySelectorAll('input[name="model_quality"]').forEach(el =>
+        el.addEventListener('change', () => saveSettings({ model_quality: el.value })));
+    document.querySelectorAll('input[name="num_images"]').forEach(el =>
+        el.addEventListener('change', () => saveSettings({ num_images: el.value })));
+    document.querySelectorAll('input[name="video_resolution"]').forEach(el =>
+        el.addEventListener('change', () => saveSettings({ video_resolution: el.value })));
+    const durationSlider = document.getElementById('video_duration');
+    if (durationSlider) {
+        durationSlider.addEventListener('change', () => saveSettings({ video_duration: durationSlider.value }));
+    }
+}
+
 // ═══ Init ═══
 document.addEventListener('DOMContentLoaded', () => {
+    restoreSettings();
+    updateCostEstimate();
+    updateResolutionForModel();
+    updateVideoCostEstimate();
+    setupSettingsPersistence();
+
     updateFavCount();
     markExistingFavorites();
     setupFormIntercept();
