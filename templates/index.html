@@ -21,6 +21,11 @@
             <div class="header-actions">
                 {% if is_guest %}
                 <span class="badge-guest"><i class="fas fa-user"></i> Invité</span>
+                {% else %}
+                <span class="badge-credits" id="credits-badge" title="Crédits xAI restants">
+                    <i class="fas fa-coins"></i>
+                    <span id="credits-value">...</span>
+                </span>
                 {% endif %}
                 <a href="/auth/logout" class="btn-logout" {% if is_guest %}onclick="localStorage.removeItem('xai_guest_key')"{% endif %}>
                     <i class="fas fa-sign-out-alt"></i> Déconnexion

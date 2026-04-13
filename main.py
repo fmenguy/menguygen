@@ -34,6 +34,10 @@ if not api_key:
 
 client = Client(api_key=api_key)
 
+# Management API xAI (pour les crédits)
+XAI_MANAGEMENT_KEY = os.getenv("XAI_MANAGEMENT_KEY")
+XAI_TEAM_ID = os.getenv("XAI_TEAM_ID")
+
 # Répertoire de sauvegarde configurable
 SAVE_DIR = os.getenv("SAVE_DIR", os.path.join(os.getcwd(), "downloads"))
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -428,6 +432,47 @@ async def refine_image(request: Request, image_url: str = Form(...), refine_prom
     except Exception as e:
         log += f"Erreur refinement : {e}\n"
     return _tpl(request, "index.html", image_urls=[image_url], log=log)
+
+
+@app.get("/api/credits", dependencies=[Depends(require_auth)])
+async def get_credits(request: Request):
+    """Retourne le solde de crédits prépayés xAI (uniquement pour les admins)."""
+    if request.session.get("guest"):
+        return JSONResponse({"error": "Non disponible en mode invité"}, status_code=403)
+    if not XAI_MANAGEMENT_KEY or not XAI_TEAM_ID:
+        return JSONResponse({"error": "Management API non configurée"}, status_code=503)
+    try:
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, lambda: requests.get(
+            f"https://management-api.x.ai/v1/billing/teams/{XAI_TEAM_ID}/prepaid/balance",
+            headers={"Authorization": f"Bearer {XAI_MANAGEMENT_KEY}"},
+            timeout=10,
+        ))
+        if response.status_code == 200:
+            data = response.json()
+            # total.val = somme algébrique : achats en négatif, dépenses en positif
+            # solde restant = -total (en centimes)
+            total_val = int(data.get("total", {}).get("val", "0"))
+            balance_cents = -total_val
+
+            # Déduire le spend du cycle de facturation en cours (non encore dans changes)
+            preview_resp = await loop.run_in_executor(None, lambda: requests.get(
+                f"https://management-api.x.ai/v1/billing/teams/{XAI_TEAM_ID}/postpaid/invoice/preview",
+                headers={"Authorization": f"Bearer {XAI_MANAGEMENT_KEY}"},
+                timeout=10,
+            ))
+            if preview_resp.status_code == 200:
+                preview = preview_resp.json()
+                core = preview.get("coreInvoice", {})
+                used_val = int(core.get("prepaidCreditsUsed", {}).get("val", "0"))
+                # prepaidCreditsUsed est négatif (crédits consommés ce cycle)
+                balance_cents += used_val  # on ajoute la valeur négative = on soustrait
+
+            balance_usd = balance_cents / 100
+            return JSONResponse({"balance": round(balance_usd, 2)})
+        return JSONResponse({"error": f"API error {response.status_code}", "body": response.text}, status_code=200)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 @app.post("/clear_history", dependencies=[Depends(require_auth)])
