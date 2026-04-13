@@ -1025,6 +1025,37 @@ input[type="file"]::file-selector-button:hover {
     font-weight: 600;
 }
 
+.badge-credits {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    background: rgba(232, 168, 56, 0.08);
+    border: 1px solid rgba(232, 168, 56, 0.2);
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: default;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.badge-credits:hover {
+    background: rgba(232, 168, 56, 0.14);
+    border-color: rgba(232, 168, 56, 0.35);
+}
+
+.badge-credits.credits-low {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.25);
+    color: #f87171;
+}
+
+.badge-credits.credits-loading {
+    opacity: 0.6;
+}
+
 /* ═══ Aspect Ratio Selector ═══ */
 
 .aspect-ratio-group {

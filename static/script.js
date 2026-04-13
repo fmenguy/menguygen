@@ -1,3 +1,54 @@
+// ═══ Credits badge ═══
+(function() {
+    const badge = document.getElementById('credits-badge');
+    const valueEl = document.getElementById('credits-value');
+    if (!badge || !valueEl) return;
+
+    badge.classList.add('credits-loading');
+
+    fetch('/api/credits')
+        .then(r => r.json())
+        .then(data => {
+            badge.classList.remove('credits-loading');
+            if (data.error) {
+                valueEl.textContent = '—';
+                badge.title = data.error;
+            } else {
+                const usd = data.balance;
+                valueEl.textContent = '$' + usd.toFixed(2);
+                badge.title = 'Crédits xAI restants — cliquer pour rafraîchir';
+                if (usd < 1) badge.classList.add('credits-low');
+            }
+        })
+        .catch(() => {
+            badge.classList.remove('credits-loading');
+            valueEl.textContent = '—';
+        });
+
+    badge.addEventListener('click', function() {
+        valueEl.textContent = '...';
+        badge.classList.remove('credits-low');
+        badge.classList.add('credits-loading');
+        fetch('/api/credits')
+            .then(r => r.json())
+            .then(data => {
+                badge.classList.remove('credits-loading');
+                if (data.error) {
+                    valueEl.textContent = '—';
+                    badge.title = data.error;
+                } else {
+                    const usd = data.balance;
+                    valueEl.textContent = '$' + usd.toFixed(2);
+                    if (usd < 1) badge.classList.add('credits-low');
+                }
+            })
+            .catch(() => {
+                badge.classList.remove('credits-loading');
+                valueEl.textContent = '—';
+            });
+    });
+})();
+
 // ═══ Tab switching ═══
 document.querySelectorAll('.tab-link').forEach(tab => {
     tab.addEventListener('click', e => {
