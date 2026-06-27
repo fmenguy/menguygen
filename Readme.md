@@ -60,5 +60,3 @@ static/
 ## Auteurs
 
 **François MENGUY** - [fmenguy.fr](https://fmenguy.fr) | [@fmenguy](https://github.com/fmenguy)
-
-**Claude** (Opus 4.6, Anthropic) - Co-développeur IA, architecture features v2+, refonte UI, et ce README.
