@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv(_Path(__file__).resolve().parent / ".env")
 
 import asyncio
+import base64
 import requests
 from datetime import datetime
 from uuid import uuid4
@@ -304,7 +305,9 @@ async def generate_video(
     test_mode: Optional[str] = Form(None),
     api_key: Optional[str] = Form(None),
 ):
-    if not prompt.strip() and not image_file:
+    has_image = bool(image_file and image_file.filename)
+
+    if not prompt.strip() and not has_image:
         return _tpl(request, "index.html", log="Erreur : Prompt vide et aucune image uploadée pour vidéo !")
 
     video_resolution = video_resolution if video_resolution in ALLOWED_VIDEO_RESOLUTIONS else "480p"
@@ -313,16 +316,15 @@ async def generate_video(
     xai_client = _get_client(request, api_key)
     expanded_prompt = _expand_prompt(prompt)
     log = f"Génération vidéo en cours : \"{prompt}\""
-    if image_file:
+    if has_image:
         log += " (depuis image uploadée)"
     log += f" [{video_resolution}, {video_duration}s] ...\n"
     if expanded_prompt != prompt:
         log += "Preset appliqué.\n"
 
-    temp_path = None
     try:
         loop = asyncio.get_running_loop()
-        if image_file:
+        if has_image:
             if image_file.content_type not in ALLOWED_MIME_TYPES:
                 return _tpl(request, "index.html", log=f"Erreur : Type de fichier non autorisé ({image_file.content_type}). Formats acceptés : PNG, JPEG, WebP.", prompt=prompt)
 
@@ -330,12 +332,9 @@ async def generate_video(
             if len(content) > MAX_UPLOAD_SIZE:
                 return _tpl(request, "index.html", log="Erreur : Fichier trop volumineux (max 10 Mo).", prompt=prompt)
 
-            ext = os.path.splitext(image_file.filename or "")[1] or ".png"
-            temp_path = os.path.join(SAVE_DIR, f"temp_{uuid4().hex}{ext}")
-            with open(temp_path, "wb") as f:
-                f.write(content)
-
-            image_url = f"file://{temp_path}"
+            mime = image_file.content_type or "image/png"
+            b64 = base64.b64encode(content).decode("utf-8")
+            image_url = f"data:{mime};base64,{b64}"
             response = await loop.run_in_executor(None, lambda: xai_client.video.generate(
                 model="grok-imagine-video",
                 prompt=expanded_prompt,
@@ -363,12 +362,6 @@ async def generate_video(
     except Exception as e:
         log += f"Erreur génération vidéo : {e}\n"
         return _tpl(request, "index.html", log=log)
-    finally:
-        if temp_path and os.path.exists(temp_path):
-            try:
-                os.remove(temp_path)
-            except OSError:
-                pass
 
 
 @app.post("/animate_image", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
