@@ -1,5 +1,10 @@
 # Changelog
 
+## Arrêt du projet (9 novembre 2026)
+- Application retirée : le site n'est plus en ligne et le service d'hébergement est supprimé
+- Plus de maintenance : le dépôt est archivé, le code reste consultable pour référence
+- `Readme.md` renommé en `README.md` et réécrit en français et en anglais
+
 ## v6
 - Renommage "Image Studio" → **MenguyGen**
 - Mode invité : les visiteurs peuvent utiliser l'app avec leur propre clé API xAI
